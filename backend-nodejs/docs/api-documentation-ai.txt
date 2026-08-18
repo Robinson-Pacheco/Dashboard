@@ -1,0 +1,222 @@
+# Documentación de API: Business Intelligence API for University Admission Data
+
+## Información General
+- **Versión**: 1.0.0
+- **Descripción**: API for processing and analyzing university admission test data
+- **Servidor**: http://localhost:3000
+
+## Esquemas de Datos
+
+### User
+Sin descripción
+
+**Propiedades:**
+- `username` (string): Unique username for the user ✅
+- `password` (string): User password (will be hashed) ✅
+- `email` (string): User email address ✅
+- `names` (string): Full name of the user ✅
+- `role` (string): User role for access control
+
+### UserResponse
+Sin descripción
+
+**Propiedades:**
+- `id` (string): Unique identifier for the user
+- `username` (string): Unique username for the user
+- `email` (string): User email address
+- `names` (string): Full name of the user
+- `role` (string): User role for access control
+- `createdAt` (string): Timestamp when the user was created
+- `updatedAt` (string): Timestamp when the user was last updated
+
+### LoginRequest
+Sin descripción
+
+**Propiedades:**
+- `username` (string): Username for authentication ✅
+- `password` (string): Password for authentication ✅
+
+### LoginResponse
+Sin descripción
+
+**Propiedades:**
+- `success` (boolean): 
+- `token` (string): JWT authentication token
+- `user` (object): 
+
+### AdmissionData
+Sin descripción
+
+**Propiedades:**
+- `_id` (string): Unique identifier for the admission record
+- `period` (string): Academic period (e.g., 2025-2)
+- `year` (number): Academic year
+- `studentId` (string): Student identification number
+- `studentName` (string): Full name of the student
+- `scores` (object): Object containing scores for different test subjects
+- `totalScore` (number): Total score across all subjects
+- `status` (string): Admission status based on scores
+- `uploadedBy` (string): ID of the user who uploaded this data
+- `createdAt` (string): Timestamp when the record was created
+
+### AdmissionStats
+Sin descripción
+
+**Propiedades:**
+- `totalStudents` (number): Total number of students
+- `averageScore` (number): Average score across all students
+- `maxScore` (number): Highest score achieved
+- `minScore` (number): Lowest score achieved
+- `approvedCount` (number): Number of students who were approved
+- `rejectedCount` (number): Number of students who were rejected
+- `pendingCount` (number): Number of students with pending status
+
+### Error
+Sin descripción
+
+**Propiedades:**
+- `success` (boolean): 
+- `error` (string): Error message
+
+### DemographicBreakdown
+Sin descripción
+
+**Propiedades:**
+- `gender` (object): 
+- `residence` (object): 
+- `educationType` (object): 
+
+### ComponentPerformance
+Sin descripción
+
+**Propiedades:**
+- `components` (array): 
+
+### DisabilityStatistics
+Sin descripción
+
+**Propiedades:**
+- `withDisability` (number): Number of students with disabilities
+- `withoutDisability` (number): Number of students without disabilities
+- `disabilityTypes` (object): 
+
+### AdmissionTrends
+Sin descripción
+
+**Propiedades:**
+- `periods` (array): 
+
+### DashboardData
+Sin descripción
+
+**Propiedades:**
+- `statistics` (object): 
+- `trends` (object): 
+- `demographics` (object): 
+- `performance` (object): 
+- `disability` (object): 
+
+## Endpoints
+
+### Business Intelligence
+
+**GET `/api/bi/statistics`**
+- **Resumen**: Get admission statistics by period and year
+- **Descripción**: Returns statistical data about admissions for a specific period and year
+- **Autenticación**: ✅ Requerida
+- **Parámetros**:
+  - `period` (query): Academic period (e.g., 20252)
+  - `year` (query): Academic year (e.g., 2025)
+- **Éxito**: Successful operation
+
+**GET `/api/bi/trends`**
+- **Resumen**: Get admission trends over time
+- **Descripción**: Returns admission data trends across multiple periods
+- **Autenticación**: ✅ Requerida
+- **Éxito**: Successful operation
+
+**GET `/api/bi/demographics`**
+- **Resumen**: Get demographic breakdown of applicants
+- **Descripción**: Returns demographic data about applicants including gender, residence, and education type
+- **Autenticación**: ✅ Requerida
+- **Éxito**: Successful operation
+
+**GET `/api/bi/performance`**
+- **Resumen**: Get performance analysis by component
+- **Descripción**: Returns performance data broken down by test components
+- **Autenticación**: ✅ Requerida
+- **Éxito**: Successful operation
+
+**GET `/api/bi/disability`**
+- **Resumen**: Get disability statistics
+- **Descripción**: Returns statistics about applicants with disabilities
+- **Autenticación**: ✅ Requerida
+- **Éxito**: Successful operation
+
+**GET `/api/bi/periods-years`**
+- **Resumen**: Get available periods and years
+- **Descripción**: Returns a list of available periods and years from admission data
+- **Autenticación**: ✅ Requerida
+- **Éxito**: Successful operation
+
+**GET `/api/bi/dashboard`**
+- **Resumen**: Get comprehensive dashboard data
+- **Descripción**: Returns all necessary data for the business intelligence dashboard
+- **Autenticación**: ✅ Requerida
+- **Parámetros**:
+  - `period` (query): Academic period (e.g., 20252)
+  - `year` (query): Academic year (e.g., 2025)
+- **Éxito**: Successful operation
+
+### Admission Data
+
+**POST `/api/admission/upload`**
+- **Resumen**: Upload and process admission data from Excel file
+- **Autenticación**: ✅ Requerida
+- **Éxito**: File processed successfully
+
+**GET `/api/admission/`**
+- **Resumen**: Get admission data with optional filters
+- **Autenticación**: ✅ Requerida
+- **Parámetros**:
+  - `period` (query): Filter by academic period (e.g., 2025-2)
+  - `year` (query): Filter by academic year
+  - `page` (query): Page number for pagination
+  - `limit` (query): Number of records per page
+- **Éxito**: Admission data retrieved successfully
+
+**GET `/api/admission/stats`**
+- **Resumen**: Get admission statistics
+- **Autenticación**: ✅ Requerida
+- **Parámetros**:
+  - `period` (query): Filter by academic period (e.g., 2025-2)
+  - `year` (query): Filter by academic year
+- **Éxito**: Admission statistics retrieved successfully
+
+### Authentication
+
+**POST `/api/auth/register`**
+- **Resumen**: Register a new user
+- **Éxito**: User registered successfully
+
+**POST `/api/auth/login`**
+- **Resumen**: Authenticate user and get JWT token
+- **Éxito**: Login successful
+
+**GET `/api/auth/me`**
+- **Resumen**: Get current user information
+- **Autenticación**: ✅ Requerida
+- **Éxito**: User information retrieved successfully
+
+**GET `/api/auth/users`**
+- **Resumen**: Get all users (Admin only)
+- **Autenticación**: ✅ Requerida
+- **Éxito**: Users retrieved successfully
+
+**DELETE `/api/auth/users/{id}`**
+- **Resumen**: Delete a user (Admin only)
+- **Autenticación**: ✅ Requerida
+- **Parámetros**:
+  - `id` (path): User ID to delete (requerido)
+- **Éxito**: User deleted successfully
+

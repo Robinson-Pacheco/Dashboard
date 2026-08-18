@@ -1,0 +1,386 @@
+<div class="space-y-6">
+  <!-- Summary Card -->
+  <div class="bg-gradient-to-r from-green-50 to-teal-50 dark:from-gray-800 dark:to-gray-700 shadow-md rounded-lg p-4 md:p-6">
+    <div class="flex items-start gap-4">
+      <div class="bg-green-100 dark:bg-green-900 p-3 rounded-lg">
+        <lucide-icon [name]="Target" class="w-8 h-8 text-green-600 dark:text-green-300"></lucide-icon>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Análisis de Estrategia de Respuesta</h3>
+        @if (summary()) {
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Total Componentes</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ summary()!.totalComponents }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Mejor Estrategia</p>
+              <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ summary()!.bestStrategy }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Puntaje Estrategia Óptima</p>
+              <p class="text-2xl font-bold text-utmach-blue dark:text-utmach-sky">{{ summary()!.bestStrategyScore | number:'1.0-0' }}</p>
+            </div>
+          </div>
+          <div class="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg border-l-4 border-green-500">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ summary()!.mainRecommendation }}
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Heatmap: Matriz de Competencias -->
+  @if (heatmapData()) {
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="bg-utmach-blue-100 dark:bg-utmach-blue-900 p-2 rounded-lg">
+            <lucide-icon [name]="Target" class="w-6 h-6 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Matriz de Competencias (Heatmap)</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Efectividad por Componente y Estrategia</p>
+          </div>
+        </div>
+        
+        <!-- Leyenda -->
+        <div class="hidden md:flex items-center gap-3">
+          <span class="text-xs text-gray-600 dark:text-gray-400">Efectividad:</span>
+          <div class="flex items-center gap-1">
+            <div class="w-6 h-6 bg-red-500 dark:bg-red-600 rounded" title="Baja: < 30%"></div>
+            <div class="w-6 h-6 bg-orange-400 dark:bg-orange-500 rounded" title="Media-Baja: 30-45%"></div>
+            <div class="w-6 h-6 bg-yellow-400 dark:bg-yellow-500 rounded" title="Media: 45-60%"></div>
+            <div class="w-6 h-6 bg-green-400 dark:bg-green-600 rounded" title="Alta: 60-75%"></div>
+            <div class="w-6 h-6 bg-green-600 dark:bg-green-500 rounded" title="Muy Alta: > 75%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leyenda Mobile -->
+      <div class="md:hidden mb-4">
+        <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">Escala de Efectividad:</p>
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex items-center gap-1">
+            <div class="w-4 h-4 bg-red-500 dark:bg-red-600 rounded"></div>
+            <span class="text-xs text-gray-600 dark:text-gray-400">< 30%</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <div class="w-4 h-4 bg-orange-400 dark:bg-orange-500 rounded"></div>
+            <span class="text-xs text-gray-600 dark:text-gray-400">30-45%</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <div class="w-4 h-4 bg-yellow-400 dark:bg-yellow-500 rounded"></div>
+            <span class="text-xs text-gray-600 dark:text-gray-400">45-60%</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <div class="w-4 h-4 bg-green-400 dark:bg-green-600 rounded"></div>
+            <span class="text-xs text-gray-600 dark:text-gray-400">60-75%</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <div class="w-4 h-4 bg-green-600 dark:bg-green-500 rounded"></div>
+            <span class="text-xs text-gray-600 dark:text-gray-400">> 75%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Matriz Heatmap -->
+      <div class="overflow-x-auto">
+        <div class="inline-block min-w-full" style="overflow: visible;">
+          <table class="w-full border-collapse">
+            <!-- Cabecera -->
+            <thead>
+              <tr>
+                <th class="bg-gray-100 dark:bg-gray-700 px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600">
+                  Componente \ Estrategia
+                </th>
+                @for (strategy of byStrategy(); track strategy.strategyType) {
+                  <th class="bg-gray-100 dark:bg-gray-700 px-4 py-3 text-center text-xs font-semibold border border-gray-300 dark:border-gray-600"
+                      [class]="getStrategyIconColor(strategy.strategyType)">
+                    {{ strategy.strategyType }}
+                  </th>
+                }
+              </tr>
+            </thead>
+            <!-- Cuerpo -->
+            <tbody>
+              @for (row of heatmapData(); track row.component) {
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                  <td class="bg-gray-50 dark:bg-gray-800 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600">
+                    {{ row.component }}
+                  </td>
+                  @for (cell of row.strategies; track cell.strategyType; let isLast = $last; let rowIndex = $index) {
+                    <td class="border border-gray-300 dark:border-gray-600 p-1 text-center relative group cursor-pointer" style="overflow: visible;">
+                      <div 
+                        [class]="getHeatmapColor(cell.effectiveness)"
+                        class="w-full h-16 rounded flex items-center justify-center">
+                        <span class="text-white font-bold text-sm drop-shadow-lg">
+                          {{ cell.effectiveness | number:'1.0-0' }}%
+                        </span>
+                      </div>
+                      
+                      <!-- Tooltip on hover - Derecha para columnas normales, Izquierda para la última -->
+                      <div class="absolute hidden group-hover:block bg-gray-900 dark:bg-gray-800 text-white text-xs rounded-lg p-3 shadow-xl border border-gray-700 whitespace-nowrap"
+                           [ngStyle]="isLast ? {'z-index': '9999', 'top': '0', 'right': '100%', 'margin-right': '8px'} : {'z-index': '9999', 'top': '0', 'left': '100%', 'margin-left': '8px'}">
+                        <div class="space-y-1">
+                          <p class="font-semibold">{{ row.component }} - {{ cell.strategyType }}</p>
+                          <p>Efectividad: <span class="font-bold">{{ cell.effectiveness | number:'1.1-1' }}%</span></p>
+                        </div>
+                        <!-- Arrow apuntando a la izquierda o derecha según posición -->
+                        <div class="absolute w-2 h-2 bg-gray-900 dark:bg-gray-800 border-gray-700 transform rotate-45"
+                             [ngClass]="isLast ? 'border-r border-t' : 'border-l border-b'"
+                             [ngStyle]="isLast ? {'right': '-5px', 'top': '50%', 'transform': 'translateY(-50%) rotate(45deg)'} : {'left': '-5px', 'top': '50%', 'transform': 'translateY(-50%) rotate(45deg)'}"></div>
+                      </div>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Insights -->
+      <div class="mt-4 p-3 bg-utmach-blue-50 dark:bg-utmach-blue-900/20 rounded-lg border-l-4 border-utmach-blue">
+        <p class="text-sm text-gray-700 dark:text-gray-300">
+          <span class="font-semibold">Interpretación:</span> Los colores más verdes indican mayor efectividad en la combinación de componente y estrategia. 
+          Los valores más altos sugieren que el componente se responde mejor con esa estrategia específica.
+        </p>
+      </div>
+    </div>
+  }
+
+  <!-- Charts -->
+  @if (byComponent().length > 0 && byStrategy().length > 0) {
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Component Performance Chart -->
+      <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Rendimiento por Componente
+        </h3>
+        <div class="h-80">
+          <canvas baseChart
+            [data]="componentPerformanceChartData()"
+            [options]="componentPerformanceChartOptions()"
+            type="bar">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Strategy Comparison Chart -->
+      <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Comparativa de Estrategias
+        </h3>
+        <div class="h-80">
+          <canvas baseChart
+            [data]="strategyComparisonChartData()"
+            [options]="strategyComparisonChartOptions()"
+            type="bar">
+          </canvas>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- By Component Section -->
+  @if (byComponent().length === 0) {
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 text-center">
+      <p class="text-gray-500 dark:text-gray-400">No hay datos disponibles</p>
+    </div>
+  } @else {
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="bg-utmach-sky-100 dark:bg-utmach-sky-900 p-2 rounded-lg">
+          <lucide-icon [name]="Target" class="w-6 h-6 text-utmach-sky dark:text-utmach-sky"></lucide-icon>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Análisis por Componente</h3>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        @for (component of byComponent(); track component.component) {
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border-l-4 border-utmach-sky">
+            <h4 class="font-semibold text-gray-900 dark:text-white mb-3">{{ component.component }}</h4>
+            
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              <div class="bg-white dark:bg-gray-800 rounded-lg p-3">
+                <p class="text-xs text-gray-600 dark:text-gray-400">Puntaje Promedio</p>
+                <p class="text-xl font-bold text-utmach-sky dark:text-utmach-sky">{{ component.avgScore | number:'1.2-2' }}</p>
+              </div>
+              <div class="bg-white dark:bg-gray-800 rounded-lg p-3">
+                <p class="text-xs text-gray-600 dark:text-gray-400">Total Intentos</p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white">{{ component.totalAttempts }}</p>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <lucide-icon [name]="CheckCircle2" class="w-4 h-4 text-green-600 dark:text-green-400"></lucide-icon>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Correctas</span>
+                </div>
+                <span class="text-sm font-semibold text-green-600 dark:text-green-400">{{ component.avgCorrect | number:'1.2-2' }}</span>
+              </div>
+              <div class="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                <div class="h-full bg-green-500" [style.width.%]="(component.avgCorrect / 15) * 100"></div>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <lucide-icon [name]="XCircle" class="w-4 h-4 text-red-600 dark:text-red-400"></lucide-icon>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Incorrectas</span>
+                </div>
+                <span class="text-sm font-semibold text-red-600 dark:text-red-400">{{ component.avgIncorrect | number:'1.2-2' }}</span>
+              </div>
+              <div class="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                <div class="h-full bg-red-500" [style.width.%]="(component.avgIncorrect / 15) * 100"></div>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <lucide-icon [name]="MinusCircle" class="w-4 h-4 text-gray-600 dark:text-gray-400"></lucide-icon>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Sin Responder</span>
+                </div>
+                <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">{{ component.avgUnanswered | number:'1.2-2' }}</span>
+              </div>
+              <div class="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                <div class="h-full bg-gray-400" [style.width.%]="(component.avgUnanswered / 15) * 100"></div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- By Strategy Section -->
+  @if (byStrategy().length > 0) {
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="bg-utmach-blue-100 dark:bg-utmach-blue-900 p-2 rounded-lg">
+          <lucide-icon [name]="Award" class="w-6 h-6 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Análisis por Estrategia</h3>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4">
+        @for (strategy of sortedStrategies(); track strategy.strategyType) {
+          <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6 border-l-4"
+               [class]="getStrategyBorderClass(strategy.strategyType)">
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <div class="flex-1">
+                <div class="flex items-start gap-3 mb-3">
+                  <div [class]="getStrategyBgClass(strategy.strategyType)" class="p-2 rounded-lg flex-shrink-0">
+                    <lucide-icon [name]="Award" 
+                      [class]="getStrategyIconColor(strategy.strategyType)" 
+                      class="w-5 h-5">
+                    </lucide-icon>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h4 class="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
+                      Estrategia {{ strategy.strategyType }}
+                    </h4>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                      <span [class]="getStrategyClass(strategy.strategyType)" class="px-2 py-1 text-xs font-semibold rounded-full">
+                        {{ strategy.strategyType }}
+                      </span>
+                      @if (summary()?.bestStrategy === strategy.strategyType) {
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                          ⭐ Óptima
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Puntaje Promedio</p>
+                    <p class="text-xl font-bold text-utmach-blue dark:text-utmach-sky">{{ strategy.avgScore | number:'1.0-0' }}</p>
+                  </div>
+                  <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Estudiantes</p>
+                    <p class="text-xl font-bold text-gray-900 dark:text-white">{{ strategy.studentCount }}</p>
+                  </div>
+                  <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Correctas</p>
+                    <p class="text-xl font-bold text-green-600 dark:text-green-400">{{ strategy.avgCorrect | number:'1.2-2' }}</p>
+                  </div>
+                  <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Incorrectas</p>
+                    <p class="text-xl font-bold text-red-600 dark:text-red-400">{{ strategy.avgIncorrect | number:'1.2-2' }}</p>
+                  </div>
+                  <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Sin Responder</p>
+                    <p class="text-xl font-bold text-gray-600 dark:text-gray-400">{{ strategy.avgUnanswered | number:'1.2-2' }}</p>
+                  </div>
+                </div>
+
+                <!-- Response Distribution Visual -->
+                <div class="mt-4">
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Distribución de Respuestas</p>
+                  <div class="flex h-4 rounded-full overflow-visible relative group cursor-pointer">
+                    <div 
+                      class="bg-green-500 flex items-center justify-center transition-all duration-200 hover:brightness-110 rounded-l-full"
+                      [style.width.%]="(strategy.avgCorrect / 50) * 100"
+                      [title]="'Correctas: ' + strategy.avgCorrect">
+                    </div>
+                    <div 
+                      class="bg-red-500 flex items-center justify-center transition-all duration-200 hover:brightness-110"
+                      [style.width.%]="(strategy.avgIncorrect / 50) * 100"
+                      [title]="'Incorrectas: ' + strategy.avgIncorrect">
+                    </div>
+                    <div 
+                      class="bg-gray-400 flex items-center justify-center transition-all duration-200 hover:brightness-110 rounded-r-full"
+                      [style.width.%]="(strategy.avgUnanswered / 50) * 100"
+                      [title]="'Sin Responder: ' + strategy.avgUnanswered">
+                    </div>
+
+                    <!-- Tooltip -->
+                    <div class="absolute hidden group-hover:block bg-gray-900 dark:bg-gray-800 text-white text-xs rounded-lg p-3 shadow-xl border border-gray-700 whitespace-nowrap" style="z-index: 9999; bottom: 100%; right: 0; margin-bottom: 8px;">
+                      <div class="space-y-2">
+                        <p class="font-semibold border-b border-gray-700 pb-1">Distribución - {{ strategy.strategyType }}</p>
+                        <div class="flex items-center gap-2">
+                          <div class="w-3 h-3 bg-green-500 rounded"></div>
+                          <span class="font-medium">Correctas:</span>
+                          <span class="font-bold">{{ strategy.avgCorrect | number:'1.2-2' }}</span>
+                          <span class="text-gray-400">({{ (strategy.avgCorrect / 50 * 100) | number:'1.0-0' }}%)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <div class="w-3 h-3 bg-red-500 rounded"></div>
+                          <span class="font-medium">Incorrectas:</span>
+                          <span class="font-bold">{{ strategy.avgIncorrect | number:'1.2-2' }}</span>
+                          <span class="text-gray-400">({{ (strategy.avgIncorrect / 50 * 100) | number:'1.0-0' }}%)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <div class="w-3 h-3 bg-gray-400 rounded"></div>
+                          <span class="font-medium">Sin Responder:</span>
+                          <span class="font-bold">{{ strategy.avgUnanswered | number:'1.2-2' }}</span>
+                          <span class="text-gray-400">({{ (strategy.avgUnanswered / 50 * 100) | number:'1.0-0' }}%)</span>
+                        </div>
+                        <div class="border-t border-gray-700 pt-1 mt-1">
+                          <div class="flex items-center gap-2">
+                            <span class="font-semibold">Total:</span>
+                            <span class="font-bold">50 preguntas</span>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- Arrow -->
+                      <div class="absolute w-2 h-2 bg-gray-900 dark:bg-gray-800 border-b border-r border-gray-700 transform rotate-45" style="bottom: -5px; right: 16px;"></div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <span>0</span>
+                    <span>50 preguntas</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

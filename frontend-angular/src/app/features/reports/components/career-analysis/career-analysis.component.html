@@ -1,0 +1,580 @@
+<div class="space-y-6">
+  <!-- Summary Card -->
+  <div class="bg-gradient-to-r from-utmach-blue-50 to-utmach-sky-50 dark:from-gray-800 dark:to-gray-700 shadow-md rounded-lg p-4 md:p-6">
+    <div class="flex items-start gap-4">
+      <div class="bg-utmach-blue-100 dark:bg-utmach-blue-900 p-3 rounded-lg">
+        <lucide-icon [name]="Briefcase" class="w-8 h-8 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Análisis de Carreras</h3>
+        @if (summary()) {
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Promedio General</p>
+              <p class="text-2xl font-bold text-utmach-blue dark:text-utmach-sky">{{ overallAverage() | number:'1.1-1' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Total Carreras</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ summary()!.totalCareers }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Total Postulantes</p>
+              <p class="text-2xl font-bold text-utmach-sky dark:text-utmach-sky">{{ summary()!.totalApplicants }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Más Demandadas</p>
+              <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ summary()!.mostCompetitiveCareers.length }}</p>
+            </div>
+          </div>
+          <div class="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg border-l-4 border-utmach-blue">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ summary()!.mainRecommendation }}
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  @if (mostCompetitiveCareers().length > 0) {
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        Carreras Más Demandadas - Top 15
+      </h3>
+      <div class="h-96">
+        <canvas baseChart
+          [data]="competitivenessChartData()"
+          [options]="competitivenessChartOptions()"
+          type="bar">
+        </canvas>
+      </div>
+      <!-- View Full List Button -->
+      <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button
+          (click)="openModal()"
+          class="flex items-center gap-2 px-4 py-2 bg-utmach-blue hover:bg-utmach-blue-700 text-white rounded-lg transition-colors text-sm font-medium">
+          <lucide-icon [name]="List" class="w-4 h-4"></lucide-icon>
+          <span>Ver lista completa con nombres extendidos</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- No Quota Segment Analysis (Sin Cupo) -->
+  @if (noQuotaSegment()) {
+    @if (hasNoQuotaData()) {
+      <div class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-gray-800 dark:to-gray-700 shadow-md rounded-lg p-4 md:p-6">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-amber-100 dark:bg-amber-900 p-2 rounded-lg">
+              <lucide-icon [name]="Award" class="w-6 h-6 text-amber-600 dark:text-amber-300"></lucide-icon>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Análisis de Estudiantes "Sin Cupo"
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Rendimiento de estudiantes que no obtuvieron cupo en su primera opción
+              </p>
+            </div>
+          </div>
+          <!-- Info tooltip -->
+          <div class="group relative">
+            <button class="flex items-center justify-center w-6 h-6 text-gray-400 hover:text-amber-500 transition-colors">
+              <lucide-icon [name]="Info" class="w-5 h-5"></lucide-icon>
+            </button>
+            <div class="absolute bottom-full right-0 mb-2 w-72 p-3 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+              <p class="font-semibold mb-1">Análisis del Segmento "Sin Cupo"</p>
+              <p>Este análisis muestra las carreras donde los estudiantes que no obtuvieron cupo tuvieron mayor o menor rendimiento. Se excluye "Sin especificar" y solo se incluyen carreras con al menos 3 estudiantes sin cupo.</p>
+              <div class="absolute bottom-0 right-3 w-2 h-2 bg-gray-900 dark:bg-gray-700 transform rotate-45 translate-y-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Best Performing -->
+          @if (noQuotaSegment()!.bestPerforming && noQuotaSegment()!.bestPerforming.length > 0) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-3">
+                <lucide-icon [name]="TrendingUp" class="w-5 h-5 text-green-500"></lucide-icon>
+                <h4 class="font-semibold text-gray-900 dark:text-white">
+                  Mejor Rendimiento (Top 10)
+                </h4>
+              </div>
+              <div class="space-y-2">
+                @for (item of noQuotaSegment()!.bestPerforming; track item.career) {
+                  <div class="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {{ item.career }}
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ item.applicantCount }} estudiantes
+                      </p>
+                    </div>
+                    <div class="ml-2">
+                      <p class="text-lg font-bold text-green-600 dark:text-green-400">
+                        {{ item.avgScore | number:'1.0-0' }}
+                      </p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Lowest Performing -->
+          @if (noQuotaSegment()!.lowestPerforming && noQuotaSegment()!.lowestPerforming.length > 0) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-3">
+                <lucide-icon [name]="TrendingDown" class="w-5 h-5 text-red-500"></lucide-icon>
+                <h4 class="font-semibold text-gray-900 dark:text-white">
+                  Menor Rendimiento (Top 10)
+                </h4>
+              </div>
+              <div class="space-y-2">
+                @for (item of noQuotaSegment()!.lowestPerforming; track item.career) {
+                  <div class="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {{ item.career }}
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ item.applicantCount }} estudiantes
+                      </p>
+                    </div>
+                    <div class="ml-2">
+                      <p class="text-lg font-bold text-red-600 dark:text-red-400">
+                        {{ item.avgScore | number:'1.0-0' }}
+                      </p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    } @else {
+      <!-- No Sin Cupo Data Available -->
+      <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 shadow-md rounded-lg p-4 md:p-6">
+        <div class="flex items-start gap-4">
+          <div class="bg-gray-200 dark:bg-gray-700 p-3 rounded-lg flex-shrink-0">
+            <lucide-icon [name]="Info" class="w-6 h-6 text-gray-500 dark:text-gray-400"></lucide-icon>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Análisis de Estudiantes "Sin Cupo"
+            </h3>
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                No hay datos suficientes para mostrar el análisis del segmento "Sin Cupo".
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                Este análisis requiere al menos 3 estudiantes que no obtuvieron cupo en una carrera para ser incluido.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Data Cards -->
+  @if (careers().length === 0) {
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 text-center">
+      <p class="text-gray-500 dark:text-gray-400">No hay datos disponibles</p>
+    </div>
+  } @else {
+    <!-- Search Filter -->
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
+      <div class="relative">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Buscar Carrera
+        </label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <lucide-icon [name]="Search" class="w-5 h-5 text-gray-400"></lucide-icon>
+          </div>
+          <input
+            type="text"
+            [value]="searchTerm()"
+            (input)="onSearchChange($any($event.target).value)"
+            (focus)="showDropdown.set(searchTerm().length >= 2)"
+            (blur)="hideDropdown()"
+            placeholder="Buscar por nombre de carrera..."
+            class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-utmach-blue focus:border-transparent transition-colors"
+          />
+          @if (searchTerm()) {
+            <button
+              (click)="clearSearch()"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+              <lucide-icon [name]="X" class="w-5 h-5 text-gray-400"></lucide-icon>
+            </button>
+          }
+        </div>
+
+        <!-- Autocomplete Dropdown -->
+        @if (showDropdown() && autocompleteSuggestions().length > 0) {
+          <div class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+            @for (career of autocompleteSuggestions(); track career.career) {
+              <button
+                (click)="selectCareer(career)"
+                class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border-b border-gray-100 dark:border-gray-600 last:border-b-0">
+                <div class="flex items-start gap-3">
+                  <lucide-icon [name]="Briefcase" 
+                    [class]="career.competitiveness === 'Muy Alta' ? 'text-red-500' : career.competitiveness === 'Alta' ? 'text-orange-500' : 'text-green-500'"
+                    class="w-5 h-5 mt-0.5 flex-shrink-0">
+                  </lucide-icon>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {{ career.career }}
+                    </p>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span [class]="getCompetitivenessClass(career.competitiveness)" class="text-xs px-2 py-0.5 rounded-full">
+                        {{ career.competitiveness }}
+                      </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">
+                        Postulantes: {{ career.applicantCount }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            }
+          </div>
+        }
+
+        <!-- No results message -->
+        @if (searchTerm() && filteredCareers().length === 0) {
+          <div class="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <p class="text-sm text-yellow-800 dark:text-yellow-200">
+              No se encontraron carreras que coincidan con "{{ searchTerm() }}"
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Pagination Controls - Top -->
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-700 dark:text-gray-300">Mostrar:</span>
+          <select 
+            [value]="itemsPerPage()"
+            (change)="changeItemsPerPage(+$any($event.target).value)"
+            class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-utmach-blue focus:border-transparent">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+          <span class="text-sm text-gray-700 dark:text-gray-300">por página</span>
+        </div>
+        <div class="text-sm text-gray-700 dark:text-gray-300">
+          Mostrando {{ startIndex() }} - {{ endIndex() }} de {{ filteredCareers().length }} carreras
+          @if (searchTerm()) {
+            <span class="text-utmach-blue dark:text-utmach-sky">(filtradas de {{ careers().length }} totales)</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4">
+      @for (item of paginatedCareers(); track item.career; let i = $index) {
+        <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6 border-l-4"
+             [class]="item.competitiveness === 'Muy Alta' ? 'border-red-500' : item.competitiveness === 'Alta' ? 'border-orange-500' : 'border-green-500'">
+          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-start gap-3 mb-3">
+                <div [class]="item.competitiveness === 'Muy Alta' ? 'bg-red-100 dark:bg-red-900' : item.competitiveness === 'Alta' ? 'bg-orange-100 dark:bg-orange-900' : 'bg-green-100 dark:bg-green-900'" 
+                     class="p-2 rounded-lg flex-shrink-0">
+                  <lucide-icon [name]="Briefcase" 
+                    [class]="item.competitiveness === 'Muy Alta' ? 'text-red-600 dark:text-red-300' : item.competitiveness === 'Alta' ? 'text-orange-600 dark:text-orange-300' : 'text-green-600 dark:text-green-300'" 
+                    class="w-5 h-5">
+                  </lucide-icon>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
+                    {{ item.career || 'Sin especificar' }}
+                  </h4>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <span [class]="getCompetitivenessClass(item.competitiveness)" class="px-2 py-1 text-xs font-semibold rounded-full">
+                      {{ item.competitiveness }}
+                    </span>
+                    <span [class]="getPerformanceLevelClass(item.performanceLevel)" class="px-2 py-1 text-xs font-semibold rounded-full">
+                      {{ item.performanceLevel }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-3 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Puntaje Promedio</p>
+                  <p class="text-xl font-bold text-gray-900 dark:text-white">{{ item.avgScore | number:'1.1-1' }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Mínimo</p>
+                  <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">{{ item.minScore }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Máximo</p>
+                  <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">{{ item.maxScore }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Postulantes</p>
+                  <p class="text-xl font-bold text-utmach-sky dark:text-utmach-sky">{{ item.applicantCount }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Con Cupo</p>
+                  <p class="text-xl font-bold text-green-600 dark:text-green-400">{{ item.withQuota }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Tasa de Cupo</p>
+                  <p class="text-xl font-bold text-utmach-blue dark:text-utmach-sky">{{ item.quotaRate }}%</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Desv. Estándar</p>
+                  <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">{{ item.stdDev | number:'1.1-1' }}</p>
+                </div>
+              </div>
+
+              <!-- Quota Rate Visual Bar -->
+              <div class="mt-3">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Tasa de Admisión Visual</p>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm text-gray-700 dark:text-gray-300">0%</span>
+                  <div class="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                      [class]="item.quotaRate >= 75 ? 'bg-gradient-to-r from-green-500 to-green-700' : item.quotaRate >= 50 ? 'bg-gradient-to-r from-blue-500 to-blue-700' : item.quotaRate >= 25 ? 'bg-gradient-to-r from-yellow-500 to-yellow-700' : 'bg-gradient-to-r from-red-500 to-red-700'"
+                      class="h-full transition-all duration-300"
+                      [style.width.%]="item.quotaRate"
+                    ></div>
+                  </div>
+                  <span class="text-sm text-gray-700 dark:text-gray-300">100%</span>
+                </div>
+              </div>
+
+              <!-- Score Comparison Bar -->
+              <app-baseline-comparison-bar
+                [currentValue]="item.avgScore"
+                [baselineValue]="overallAverage()"
+                [minValue]="item.minScore"
+                [maxValue]="item.maxScore"
+                [label]="'Comparación con Promedio General (' + (overallAverage() | number:'1.0-0') + ')'"
+                [baselineLabel]="'Promedio General'"
+                [currentLabel]="item.career">
+              </app-baseline-comparison-bar>
+
+              <!-- Applicant Count Visual -->
+              <div class="mt-3">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Postulantes vs Con Cupo</p>
+                <div class="flex items-center gap-4">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <lucide-icon [name]="Users" class="w-4 h-4 text-utmach-sky dark:text-utmach-sky"></lucide-icon>
+                      <span class="text-xs text-gray-600 dark:text-gray-400">Total: {{ item.applicantCount }}</span>
+                    </div>
+                    <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div class="h-full bg-utmach-sky" style="width: 100%"></div>
+                    </div>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <lucide-icon [name]="TrendingUp" class="w-4 h-4 text-green-600 dark:text-green-400"></lucide-icon>
+                      <span class="text-xs text-gray-600 dark:text-gray-400">Con Cupo: {{ item.withQuota }}</span>
+                    </div>
+                    <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div class="h-full bg-green-500" [style.width.%]="item.applicantCount > 0 ? (item.withQuota / item.applicantCount) * 100 : 0"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recommendations -->
+          @if (item.recommendations && item.recommendations.length > 0) {
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                (click)="toggleRecommendations(i)"
+                class="flex items-center justify-between w-full text-left"
+              >
+                <div class="flex items-center">
+                  <lucide-icon [name]="AlertTriangle" class="w-5 h-5 text-orange-500 mr-2"></lucide-icon>
+                  <span class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ item.recommendations.length }} Recomendación{{ item.recommendations.length > 1 ? 'es' : '' }}
+                  </span>
+                </div>
+                <lucide-icon [name]="isRecommendationExpanded(i) ? ChevronUp : ChevronDown" class="w-5 h-5 text-gray-500"></lucide-icon>
+              </button>
+
+              @if (isRecommendationExpanded(i)) {
+                <div class="mt-3 space-y-2">
+                  @for (rec of item.recommendations; track rec.message) {
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                      <div class="flex flex-col sm:flex-row sm:items-start gap-2">
+                        <span [class]="getPriorityClass(rec.priority)" class="inline-block px-2 py-1 text-xs font-semibold rounded-full self-start">
+                          {{ rec.priority }}
+                        </span>
+                        <div class="flex-1">
+                          <p class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ rec.type }}</p>
+                          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ rec.message }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Pagination Controls - Bottom -->
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <!-- Info -->
+        <div class="text-sm text-gray-700 dark:text-gray-300">
+          Página {{ currentPage() }} de {{ totalPages() }}
+        </div>
+
+        <!-- Pagination Buttons -->
+        <div class="flex items-center gap-2">
+          <!-- Previous Button -->
+          <button
+            (click)="previousPage()"
+            [disabled]="!hasPreviousPage()"
+            [class.opacity-50]="!hasPreviousPage()"
+            [class.cursor-not-allowed]="!hasPreviousPage()"
+            class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:hover:bg-white dark:disabled:hover:bg-gray-700 transition-colors flex items-center gap-1">
+            <lucide-icon [name]="ChevronLeft" class="w-4 h-4"></lucide-icon>
+            <span class="hidden sm:inline">Anterior</span>
+          </button>
+
+          <!-- Page Numbers -->
+          <div class="flex items-center gap-1">
+            @for (page of pageNumbers(); track page) {
+              @if (page === -1) {
+                <span class="px-3 py-2 text-gray-500 dark:text-gray-400">...</span>
+              } @else {
+                <button
+                  (click)="goToPage(page)"
+                  [class.bg-utmach-blue]="currentPage() === page"
+                  [class.text-white]="currentPage() === page"
+                  [class.bg-white]="currentPage() !== page"
+                  [class.dark:bg-gray-700]="currentPage() !== page"
+                  [class.text-gray-700]="currentPage() !== page"
+                  [class.dark:text-gray-300]="currentPage() !== page"
+                  [class.hover:bg-gray-50]="currentPage() !== page"
+                  [class.dark:hover:bg-gray-600]="currentPage() !== page"
+                  class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg transition-colors min-w-[40px]">
+                  {{ page }}
+                </button>
+              }
+            }
+          </div>
+
+          <!-- Next Button -->
+          <button
+            (click)="nextPage()"
+            [disabled]="!hasNextPage()"
+            [class.opacity-50]="!hasNextPage()"
+            [class.cursor-not-allowed]="!hasNextPage()"
+            class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:hover:bg-white dark:disabled:hover:bg-gray-700 transition-colors flex items-center gap-1">
+            <span class="hidden sm:inline">Siguiente</span>
+            <lucide-icon [name]="ChevronRight" class="w-4 h-4"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal: Competitive Careers Full List -->
+  @if (showModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="closeModal()"></div>
+
+      <!-- Modal Content -->
+      <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <div class="flex items-center gap-3">
+            <div class="bg-utmach-blue-100 dark:bg-utmach-blue-900 p-2 rounded-lg">
+              <lucide-icon [name]="List" class="w-6 h-6 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">Carreras Más Demandadas</h2>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Top 15 - Lista completa con nombres extendidos</p>
+            </div>
+          </div>
+          <button
+            (click)="closeModal()"
+            class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+            <lucide-icon [name]="X" class="w-5 h-5 text-gray-500"></lucide-icon>
+          </button>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-6">
+          <div class="space-y-3">
+            @for (item of mostCompetitiveCareers(); track item.career; let i = $index) {
+              <div class="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors">
+                <!-- Rank Badge -->
+                <div class="flex-shrink-0">
+                  <div [class]="i < 3 ? 'bg-gradient-to-br from-utmach-blue to-utmach-blue-700 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'"
+                       class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg">
+                    {{ i + 1 }}
+                  </div>
+                </div>
+
+                <!-- Career Info -->
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-base font-semibold text-gray-900 dark:text-white mb-1">
+                    {{ item.career }}
+                  </h4>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <span [class]="getCompetitivenessClass(item.competitiveness)" class="px-2 py-1 text-xs font-semibold rounded-full">
+                      {{ item.competitiveness }}
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
+                      Postulantes: {{ item.applicantCount }}
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
+                      Promedio: {{ item.avgScore | number:'1.1-1' }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Score Badge -->
+                <div class="flex-shrink-0 text-right">
+                  <p class="text-2xl font-bold text-utmach-sky dark:text-utmach-sky">{{ item.applicantCount }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">postulantes</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+          <div class="flex items-center justify-between">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Total: <strong>{{ mostCompetitiveCareers().length }}</strong> carreras competitivas
+            </p>
+            <button
+              (click)="closeModal()"
+              class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg transition-colors text-sm font-medium">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,436 @@
+<div class="space-y-6">
+  <!-- Summary Card -->
+  <div class="bg-gradient-to-r from-red-50 to-pink-50 dark:from-gray-800 dark:to-gray-700 shadow-md rounded-lg p-4 md:p-6">
+    <div class="flex items-start gap-4">
+      <div class="bg-red-100 dark:bg-red-900 p-3 rounded-lg">
+        <lucide-icon [name]="MapPin" class="w-8 h-8 text-red-600 dark:text-red-300"></lucide-icon>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Análisis Geográfico - IRP (Índice de Riesgo por Ubicación)</h3>
+        @if (summary()) {
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Promedio General</p>
+              <p class="text-2xl font-bold text-utmach-blue dark:text-utmach-sky">{{ overallAverage() | number:'1.1-1' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Total Ubicaciones</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ summary()!.totalLocations }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Zonas Alto Riesgo</p>
+              <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ summary()!.highRiskZones }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">% Alto Riesgo</p>
+              <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ summary()!.percentageHighRisk }}%</p>
+            </div>
+          </div>
+          <div class="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg border-l-4 border-red-500">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ summary()!.mainRecommendation }}
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section - Applies to ALL data -->
+  <div class="bg-utmach-blue-50 dark:bg-utmach-blue-900/20 border border-utmach-blue-200 dark:border-utmach-blue-800 shadow-md rounded-lg p-4 md:p-6">
+    <div class="flex items-start gap-3">
+      <div class="bg-utmach-blue-100 dark:bg-utmach-blue-900 p-2 rounded-lg flex-shrink-0">
+        <lucide-icon [name]="Filter" class="w-5 h-5 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+      </div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-3">
+          <h3 class="text-base font-semibold text-utmach-blue dark:text-utmach-sky">Filtros de Análisis</h3>
+          <span class="text-xs text-utmach-blue dark:text-utmach-sky bg-utmach-blue-100 dark:bg-utmach-blue-900 px-2 py-0.5 rounded-full">
+            Aplican a todos los datos
+          </span>
+          @if (hasFilterApplied()) {
+            <span class="text-xs text-green-600 dark:text-green-300 bg-green-100 dark:bg-green-900 px-2 py-0.5 rounded-full">
+              Activo
+            </span>
+          }
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Sample Size Filter -->
+          <div>
+            <label class="block text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+              Tamaño de Muestra
+            </label>
+            <div class="relative">
+              <select
+                [value]="sampleSizeFilter()"
+                (change)="applySampleSizeFilter($any($event.target).value)"
+                class="block w-full px-3 py-2 text-sm border border-utmach-blue-300 dark:border-utmach-blue-700 rounded-lg bg-white dark:bg-gray-800 text-utmach-blue dark:text-utmach-sky focus:ring-2 focus:ring-utmach-blue focus:border-transparent">
+                @for (option of sampleSizeOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+              @if (sampleSizeFilter()) {
+                <button
+                  (click)="clearSampleSizeFilter()"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-utmach-blue dark:hover:text-utmach-sky transition-colors"
+                  title="Limpiar filtro">
+                  <lucide-icon [name]="X" class="w-4 h-4 text-utmach-sky"></lucide-icon>
+                </button>
+              }
+            </div>
+            <!-- Indicador del valor seleccionado -->
+            <div class="mt-2 flex items-center gap-2">
+              <span class="text-xs text-gray-500 dark:text-gray-400">Seleccionado:</span>
+              @if (sampleSizeFilter()) {
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-utmach-blue-100 text-utmach-blue dark:bg-utmach-blue-900 dark:text-utmach-sky">
+                  {{ getSampleSizeLabel() }}
+                </span>
+              } @else {
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                  Todos los tamaños
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+
+        @if (hasFilterApplied()) {
+          <div class="mt-3 flex items-center gap-2 text-xs text-utmach-blue dark:text-utmach-sky">
+            <lucide-icon [name]="Info" class="w-4 h-4"></lucide-icon>
+            <span>Filtro activo: {{ getSampleSizeLabel() }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  @if (highRiskZones().length > 0) {
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        Zonas de Mayor Desviación - Top 15
+      </h3>
+      <div class="h-96">
+        <canvas baseChart
+          [data]="riskChartData()"
+          [options]="riskChartOptions()"
+          type="bar">
+        </canvas>
+      </div>
+    </div>
+  } @else if (hasFilterApplied() && locations().length > 0) {
+    <!-- No high risk zones after filtering -->
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6">
+      <div class="flex items-start gap-3">
+        <div class="bg-yellow-100 dark:bg-yellow-900 p-2 rounded-lg flex-shrink-0">
+          <lucide-icon [name]="AlertCircle" class="w-5 h-5 text-yellow-600 dark:text-yellow-300"></lucide-icon>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Zonas de Mayor Desviación - No hay datos disponibles
+          </h3>
+          <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <p class="text-sm text-yellow-800 dark:text-yellow-200">
+              <strong>Explicación:</strong> Con el filtro de tamaño de muestra aplicado ({{ getSampleSizeLabel() }}),
+              no se encontraron ubicaciones con desviación significativa del promedio general.
+            </p>
+            <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-2">
+              Esto ocurre cuando las ubicaciones filtradas tienen puntajes similares al promedio general,
+              lo cual es común en muestras grandes donde la distribución es más uniforme.
+            </p>
+            <button
+              (click)="clearSampleSizeFilter()"
+              class="mt-3 text-sm text-utmach-blue dark:text-utmach-sky hover:underline font-medium">
+              Limpiar filtro para ver todas las ubicaciones
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Data Cards -->
+  @if (locations().length === 0) {
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 text-center">
+      <p class="text-gray-500 dark:text-gray-400">No hay datos disponibles</p>
+    </div>
+  } @else {
+    <!-- Search Filter -->
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
+      <div class="relative">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Buscar Ubicación
+        </label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <lucide-icon [name]="Search" class="w-5 h-5 text-gray-400"></lucide-icon>
+          </div>
+          <input
+            type="text"
+            [value]="searchTerm()"
+            (input)="onSearchChange($any($event.target).value)"
+            (focus)="showDropdown.set(searchTerm().length >= 2)"
+            (blur)="hideDropdown()"
+            placeholder="Buscar por provincia o cantón..."
+            class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-utmach-blue focus:border-transparent transition-colors"
+          />
+          @if (searchTerm()) {
+            <button
+              (click)="clearSearch()"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+              <lucide-icon [name]="X" class="w-5 h-5 text-gray-400"></lucide-icon>
+            </button>
+          }
+        </div>
+
+        <!-- Autocomplete Dropdown -->
+        @if (showDropdown() && autocompleteSuggestions().length > 0) {
+          <div class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+            @for (location of autocompleteSuggestions(); track location.province + location.canton) {
+              <button
+                (click)="selectLocation(location)"
+                class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border-b border-gray-100 dark:border-gray-600 last:border-b-0">
+                <div class="flex items-start gap-3">
+                  <lucide-icon [name]="MapPin" 
+                    [class]="location.riskLevel === 'Riesgo Alto' ? 'text-red-500' : location.riskLevel === 'Riesgo Medio' ? 'text-yellow-500' : 'text-green-500'"
+                    class="w-5 h-5 mt-0.5 flex-shrink-0">
+                  </lucide-icon>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">
+                      {{ location.province }} - {{ location.canton }}
+                    </p>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span [class]="getRiskLevelClass(location.riskLevel)" class="text-xs px-2 py-0.5 rounded-full">
+                        {{ location.riskLevel }}
+                      </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">
+                        IRP: {{ location.riskIndex | number:'1.1-1' }}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            }
+          </div>
+        }
+
+        <!-- No results message -->
+        @if (searchTerm() && filteredLocations().length === 0) {
+          <div class="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <p class="text-sm text-yellow-800 dark:text-yellow-200">
+              No se encontraron ubicaciones que coincidan con "{{ searchTerm() }}"
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Pagination Controls - Top -->
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-700 dark:text-gray-300">Mostrar:</span>
+          <select 
+            [value]="itemsPerPage()"
+            (change)="changeItemsPerPage(+$any($event.target).value)"
+            class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-utmach-blue focus:border-transparent">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+          <span class="text-sm text-gray-700 dark:text-gray-300">por página</span>
+        </div>
+        <div class="text-sm text-gray-700 dark:text-gray-300">
+          Mostrando {{ startIndex() }} - {{ endIndex() }} de {{ filteredLocations().length }} ubicaciones
+          @if (searchTerm()) {
+            <span class="text-utmach-blue dark:text-utmach-sky">(filtradas de {{ locations().length }} totales)</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4">
+      @for (item of paginatedLocations(); track item.province + item.canton; let i = $index) {
+        <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6 border-l-4"
+             [class]="item.riskLevel === 'Riesgo Alto' ? 'border-red-500' : item.riskLevel === 'Riesgo Medio' ? 'border-yellow-500' : 'border-green-500'">
+          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-start gap-3 mb-3">
+                <div [class]="item.riskLevel === 'Riesgo Alto' ? 'bg-red-100 dark:bg-red-900' : item.riskLevel === 'Riesgo Medio' ? 'bg-yellow-100 dark:bg-yellow-900' : 'bg-green-100 dark:bg-green-900'" 
+                     class="p-2 rounded-lg flex-shrink-0">
+                  <lucide-icon [name]="MapPin" 
+                    [class]="item.riskLevel === 'Riesgo Alto' ? 'text-red-600 dark:text-red-300' : item.riskLevel === 'Riesgo Medio' ? 'text-yellow-600 dark:text-yellow-300' : 'text-green-600 dark:text-green-300'" 
+                    class="w-5 h-5">
+                  </lucide-icon>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
+                    {{ item.province }} - {{ item.canton }}
+                  </h4>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <span [class]="getRiskLevelClass(item.riskLevel)" class="px-2 py-1 text-xs font-semibold rounded-full">
+                      {{ item.riskLevel }}
+                    </span>
+                    <span [class]="getPerformanceLevelClass(item.performanceLevel)" class="px-2 py-1 text-xs font-semibold rounded-full">
+                      {{ item.performanceLevel }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-3 grid grid-cols-2 md:grid-cols-6 gap-4">
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Índice de Riesgo</p>
+                  <p class="text-xl font-bold text-red-600 dark:text-red-400">{{ item.riskIndex | number:'1.2-2' }}%</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Puntaje Promedio</p>
+                  <p class="text-xl font-bold text-gray-900 dark:text-white">{{ item.avgScore | number:'1.1-1' }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Mínimo</p>
+                  <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">{{ item.minScore }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Máximo</p>
+                  <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">{{ item.maxScore }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Estudiantes</p>
+                  <p class="text-xl font-bold text-gray-900 dark:text-white">{{ item.studentCount }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Desv. Estándar</p>
+                  <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">{{ item.stdDev | number:'1.1-1' }}</p>
+                </div>
+              </div>
+
+              <!-- Risk Index Visual Bar -->
+              <div class="mt-3">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Índice de Riesgo Visual</p>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm text-gray-700 dark:text-gray-300">0%</span>
+                  <div class="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                      [class]="item.riskLevel === 'Riesgo Alto' ? 'bg-gradient-to-r from-red-500 to-red-700' : item.riskLevel === 'Riesgo Medio' ? 'bg-gradient-to-r from-yellow-500 to-yellow-700' : 'bg-gradient-to-r from-green-500 to-green-700'"
+                      class="h-full transition-all duration-300"
+                      [style.width.%]="item.riskIndex"
+                    ></div>
+                  </div>
+                  <span class="text-sm text-gray-700 dark:text-gray-300">100%</span>
+                </div>
+              </div>
+
+              <!-- Score Comparison Bar -->
+              <app-baseline-comparison-bar
+                [currentValue]="item.avgScore"
+                [baselineValue]="overallAverage()"
+                [minValue]="item.minScore"
+                [maxValue]="item.maxScore"
+                [label]="'Comparación con Promedio General (' + (overallAverage() | number:'1.0-0') + ')'"
+                [baselineLabel]="'Promedio General'"
+                [currentLabel]="item.province + ' - ' + item.canton">
+              </app-baseline-comparison-bar>
+            </div>
+          </div>
+
+          <!-- Recommendations -->
+          @if (item.recommendations && item.recommendations.length > 0) {
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                (click)="toggleRecommendations(i)"
+                class="flex items-center justify-between w-full text-left"
+              >
+                <div class="flex items-center">
+                  <lucide-icon [name]="AlertTriangle" class="w-5 h-5 text-orange-500 mr-2"></lucide-icon>
+                  <span class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ item.recommendations.length }} Recomendación{{ item.recommendations.length > 1 ? 'es' : '' }}
+                  </span>
+                </div>
+                <lucide-icon [name]="isRecommendationExpanded(i) ? ChevronUp : ChevronDown" class="w-5 h-5 text-gray-500"></lucide-icon>
+              </button>
+
+              @if (isRecommendationExpanded(i)) {
+                <div class="mt-3 space-y-2">
+                  @for (rec of item.recommendations; track rec.message) {
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                      <div class="flex flex-col sm:flex-row sm:items-start gap-2">
+                        <span [class]="getPriorityClass(rec.priority)" class="inline-block px-2 py-1 text-xs font-semibold rounded-full self-start">
+                          {{ rec.priority }}
+                        </span>
+                        <div class="flex-1">
+                          <p class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ rec.type }}</p>
+                          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ rec.message }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Pagination Controls - Bottom -->
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <!-- Info -->
+        <div class="text-sm text-gray-700 dark:text-gray-300">
+          Página {{ currentPage() }} de {{ totalPages() }}
+        </div>
+
+        <!-- Pagination Buttons -->
+        <div class="flex items-center gap-2">
+          <!-- Previous Button -->
+          <button
+            (click)="previousPage()"
+            [disabled]="!hasPreviousPage()"
+            [class.opacity-50]="!hasPreviousPage()"
+            [class.cursor-not-allowed]="!hasPreviousPage()"
+            class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:hover:bg-white dark:disabled:hover:bg-gray-700 transition-colors flex items-center gap-1">
+            <lucide-icon [name]="ChevronLeft" class="w-4 h-4"></lucide-icon>
+            <span class="hidden sm:inline">Anterior</span>
+          </button>
+
+          <!-- Page Numbers -->
+          <div class="flex items-center gap-1">
+            @for (page of pageNumbers(); track page) {
+              @if (page === -1) {
+                <span class="px-3 py-2 text-gray-500 dark:text-gray-400">...</span>
+              } @else {
+                <button
+                  (click)="goToPage(page)"
+                  [class.bg-utmach-blue]="currentPage() === page"
+                  [class.text-white]="currentPage() === page"
+                  [class.bg-white]="currentPage() !== page"
+                  [class.dark:bg-gray-700]="currentPage() !== page"
+                  [class.text-gray-700]="currentPage() !== page"
+                  [class.dark:text-gray-300]="currentPage() !== page"
+                  [class.hover:bg-gray-50]="currentPage() !== page"
+                  [class.dark:hover:bg-gray-600]="currentPage() !== page"
+                  class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg transition-colors min-w-[40px]">
+                  {{ page }}
+                </button>
+              }
+            }
+          </div>
+
+          <!-- Next Button -->
+          <button
+            (click)="nextPage()"
+            [disabled]="!hasNextPage()"
+            [class.opacity-50]="!hasNextPage()"
+            [class.cursor-not-allowed]="!hasNextPage()"
+            class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:hover:bg-white dark:disabled:hover:bg-gray-700 transition-colors flex items-center gap-1">
+            <span class="hidden sm:inline">Siguiente</span>
+            <lucide-icon [name]="ChevronRight" class="w-4 h-4"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

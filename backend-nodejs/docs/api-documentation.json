@@ -1,0 +1,1238 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Business Intelligence API for University Admission Data",
+    "version": "1.0.0",
+    "description": "API for processing and analyzing university admission test data",
+    "contact": {
+      "name": "API Support",
+      "email": "support@university.edu"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "required": [
+          "username",
+          "password",
+          "email",
+          "names"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Unique username for the user"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password (will be hashed)"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User email address"
+          },
+          "names": {
+            "type": "string",
+            "description": "Full name of the user"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "analyst",
+              "viewer"
+            ],
+            "description": "User role for access control"
+          }
+        }
+      },
+      "UserResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the user"
+          },
+          "username": {
+            "type": "string",
+            "description": "Unique username for the user"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User email address"
+          },
+          "names": {
+            "type": "string",
+            "description": "Full name of the user"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "analyst",
+              "viewer"
+            ],
+            "description": "User role for access control"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the user was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the user was last updated"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Username for authentication"
+          },
+          "password": {
+            "type": "string",
+            "description": "Password for authentication"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "token": {
+            "type": "string",
+            "description": "JWT authentication token"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        }
+      },
+      "AdmissionData": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Unique identifier for the admission record"
+          },
+          "period": {
+            "type": "string",
+            "description": "Academic period (e.g., 2025-2)"
+          },
+          "year": {
+            "type": "number",
+            "description": "Academic year"
+          },
+          "studentId": {
+            "type": "string",
+            "description": "Student identification number"
+          },
+          "studentName": {
+            "type": "string",
+            "description": "Full name of the student"
+          },
+          "scores": {
+            "type": "object",
+            "description": "Object containing scores for different test subjects",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "totalScore": {
+            "type": "number",
+            "description": "Total score across all subjects"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "description": "Admission status based on scores"
+          },
+          "uploadedBy": {
+            "type": "string",
+            "description": "ID of the user who uploaded this data"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the record was created"
+          }
+        }
+      },
+      "AdmissionStats": {
+        "type": "object",
+        "properties": {
+          "totalStudents": {
+            "type": "number",
+            "description": "Total number of students"
+          },
+          "averageScore": {
+            "type": "number",
+            "description": "Average score across all students"
+          },
+          "maxScore": {
+            "type": "number",
+            "description": "Highest score achieved"
+          },
+          "minScore": {
+            "type": "number",
+            "description": "Lowest score achieved"
+          },
+          "approvedCount": {
+            "type": "number",
+            "description": "Number of students who were approved"
+          },
+          "rejectedCount": {
+            "type": "number",
+            "description": "Number of students who were rejected"
+          },
+          "pendingCount": {
+            "type": "number",
+            "description": "Number of students with pending status"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          }
+        }
+      },
+      "DemographicBreakdown": {
+        "type": "object",
+        "properties": {
+          "gender": {
+            "type": "object",
+            "properties": {
+              "male": {
+                "type": "number"
+              },
+              "female": {
+                "type": "number"
+              },
+              "other": {
+                "type": "number"
+              }
+            }
+          },
+          "residence": {
+            "type": "object",
+            "properties": {
+              "provinces": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "educationType": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "ComponentPerformance": {
+        "type": "object",
+        "properties": {
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "averageScore": {
+                  "type": "number"
+                },
+                "maxScore": {
+                  "type": "number"
+                },
+                "minScore": {
+                  "type": "number"
+                },
+                "passRate": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "DisabilityStatistics": {
+        "type": "object",
+        "properties": {
+          "withDisability": {
+            "type": "number",
+            "description": "Number of students with disabilities"
+          },
+          "withoutDisability": {
+            "type": "number",
+            "description": "Number of students without disabilities"
+          },
+          "disabilityTypes": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "AdmissionTrends": {
+        "type": "object",
+        "properties": {
+          "periods": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "period": {
+                  "type": "string"
+                },
+                "year": {
+                  "type": "number"
+                },
+                "totalApplicants": {
+                  "type": "number"
+                },
+                "approvedCount": {
+                  "type": "number"
+                },
+                "rejectedCount": {
+                  "type": "number"
+                },
+                "averageScore": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "DashboardData": {
+        "type": "object",
+        "properties": {
+          "statistics": {
+            "$ref": "#/components/schemas/AdmissionStats"
+          },
+          "trends": {
+            "$ref": "#/components/schemas/AdmissionTrends"
+          },
+          "demographics": {
+            "$ref": "#/components/schemas/DemographicBreakdown"
+          },
+          "performance": {
+            "$ref": "#/components/schemas/ComponentPerformance"
+          },
+          "disability": {
+            "$ref": "#/components/schemas/DisabilityStatistics"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/bi/statistics": {
+      "get": {
+        "summary": "Get admission statistics by period and year",
+        "description": "Returns statistical data about admissions for a specific period and year",
+        "tags": [
+          "Business Intelligence"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Academic period (e.g., 20252)"
+          },
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "number"
+            },
+            "description": "Academic year (e.g., 2025)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdmissionStats"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bi/trends": {
+      "get": {
+        "summary": "Get admission trends over time",
+        "description": "Returns admission data trends across multiple periods",
+        "tags": [
+          "Business Intelligence"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdmissionTrends"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bi/demographics": {
+      "get": {
+        "summary": "Get demographic breakdown of applicants",
+        "description": "Returns demographic data about applicants including gender, residence, and education type",
+        "tags": [
+          "Business Intelligence"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemographicBreakdown"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bi/performance": {
+      "get": {
+        "summary": "Get performance analysis by component",
+        "description": "Returns performance data broken down by test components",
+        "tags": [
+          "Business Intelligence"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComponentPerformance"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bi/disability": {
+      "get": {
+        "summary": "Get disability statistics",
+        "description": "Returns statistics about applicants with disabilities",
+        "tags": [
+          "Business Intelligence"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisabilityStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bi/periods-years": {
+      "get": {
+        "summary": "Get available periods and years",
+        "description": "Returns a list of available periods and years from admission data",
+        "tags": [
+          "Business Intelligence"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "periods": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "years": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bi/dashboard": {
+      "get": {
+        "summary": "Get comprehensive dashboard data",
+        "description": "Returns all necessary data for the business intelligence dashboard",
+        "tags": [
+          "Business Intelligence"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Academic period (e.g., 20252)"
+          },
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "number"
+            },
+            "description": "Academic year (e.g., 2025)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardData"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admission/upload": {
+      "post": {
+        "summary": "Upload and process admission data from Excel file",
+        "tags": [
+          "Admission Data"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file",
+                  "period",
+                  "year"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Excel file containing admission data"
+                  },
+                  "period": {
+                    "type": "string",
+                    "description": "Academic period (e.g., 2025-2)"
+                  },
+                  "year": {
+                    "type": "integer",
+                    "description": "Academic year"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File processed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Admission data processed successfully"
+                        },
+                        "recordsProcessed": {
+                          "type": "integer",
+                          "description": "Number of records processed"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Missing file or parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admission/": {
+      "get": {
+        "summary": "Get admission data with optional filters",
+        "tags": [
+          "Admission Data"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by academic period (e.g., 2025-2)"
+          },
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Filter by academic year"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "Number of records per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Admission data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "records": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AdmissionData"
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "integer"
+                            },
+                            "limit": {
+                              "type": "integer"
+                            },
+                            "total": {
+                              "type": "integer"
+                            },
+                            "pages": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admission/stats": {
+      "get": {
+        "summary": "Get admission statistics",
+        "tags": [
+          "Admission Data"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by academic period (e.g., 2025-2)"
+          },
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Filter by academic year"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Admission statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AdmissionStats"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - User already exists or validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Authenticate user and get JWT token",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Get current user information",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User information retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/users": {
+      "get": {
+        "summary": "Get all users (Admin only)",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/UserResponse"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/users/{id}": {
+      "delete": {
+        "summary": "Delete a user (Admin only)",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "User ID to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Cannot delete own account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}

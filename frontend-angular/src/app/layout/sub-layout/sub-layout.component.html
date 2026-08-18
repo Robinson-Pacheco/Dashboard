@@ -1,0 +1,203 @@
+<div class="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-roboto">
+
+  <!-- ─── Sidebar ─────────────────────────────────────────── -->
+  <div class="sidebar z-30 fixed lg:relative lg:translate-x-0 w-64 flex-shrink-0 border-r border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900"
+    [class.translate-x-0]="sidebarOpen()"
+    [class.-translate-x-full]="!sidebarOpen()">
+
+    <!-- Gradient Header -->
+    <div class="sidebar-header">
+      <div class="flex items-center space-x-3">
+        <div class="h-10 w-10 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0 p-1.5">
+          <img src="logo-utmach.png" alt="UTMACH" class="h-full w-full object-contain" />
+        </div>
+        <div>
+          <h2 class="text-sm font-black text-white tracking-wide leading-tight">UTMACH</h2>
+          <p class="text-[10px] text-blue-200/80 font-medium leading-tight">Sistema BI Analytics</p>
+        </div>
+      </div>
+      <button (click)="toggleSidebar()"
+        class="lg:hidden w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer">
+        <lucide-icon [name]="X" class="h-4 w-4"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
+      @if (menuItems().length === 0) {
+        <div class="text-center py-10">
+          <lucide-icon [name]="Lock" class="h-8 w-8 mx-auto mb-2 text-slate-300 dark:text-slate-600"></lucide-icon>
+          <p class="text-xs text-slate-400 dark:text-slate-500">Sin acceso disponible</p>
+        </div>
+      }
+
+      @for (item of menuItems(); track item.id) {
+        <div>
+          <!-- Main Item -->
+          <button (click)="navigateToMenuItem(item)"
+            class="nav-item"
+            [class.active]="item.isActive">
+            <div class="flex items-center min-w-0 flex-1">
+              <lucide-icon [name]="getIconForMenuItem(item.icon)" class="mr-2.5 h-4 w-4 flex-shrink-0"></lucide-icon>
+              <span class="truncate text-xs">{{ item.label }}</span>
+              @if (item.badge) {
+                <span class="ml-1.5 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-[#C2354A] text-white flex-shrink-0">
+                  {{ item.badge }}
+                </span>
+              }
+            </div>
+            @if (item.children && item.children.length > 0) {
+              <lucide-icon [name]="item.isExpanded ? ChevronDown : ChevronRight" class="h-3.5 w-3.5 ml-1.5 flex-shrink-0 opacity-60"></lucide-icon>
+            }
+          </button>
+
+          <!-- Submenu -->
+          @if (item.children && item.children.length > 0 && item.isExpanded) {
+            <div class="ml-3 mt-0.5 pl-3 border-l-2 border-slate-200 dark:border-slate-700 space-y-0.5 pb-1">
+              @for (child of item.children; track child.id) {
+                <button (click)="navigateToMenuItem(child)"
+                  class="subnav-item"
+                  [class.active]="child.isActive">
+                  <lucide-icon [name]="getIconForMenuItem(child.icon)" class="mr-2 h-3 w-3 flex-shrink-0"></lucide-icon>
+                  <span class="truncate">{{ child.label }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </nav>
+
+    <!-- User Footer -->
+    @if (currentUser()) {
+      <div class="sidebar-footer bg-slate-50 dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2.5 min-w-0">
+            <div class="user-avatar w-8 h-8 text-xs">
+              {{ currentUser()?.names?.charAt(0) }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate leading-tight">
+                {{ currentUser()?.names }}
+              </p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                {{ getRoleLabel(currentRole()) }}
+              </p>
+            </div>
+          </div>
+          <button (click)="logout()" title="Cerrar Sesión"
+            class="w-7 h-7 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors cursor-pointer">
+            <lucide-icon [name]="LogOut" class="h-3.5 w-3.5"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Mobile Overlay -->
+  @if (sidebarOpen()) {
+    <div (click)="toggleSidebar()" class="sidebar-overlay lg:hidden"></div>
+  }
+
+  <!-- ─── Main Content ───────────────────────────────────── -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- Top Bar -->
+    <header class="topbar flex-shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800">
+      <!-- Left: Menu + Brand -->
+      <div class="flex items-center space-x-3">
+        <button (click)="toggleSidebar()" class="icon-btn" title="Menú">
+          <lucide-icon [name]="Menu" class="h-4 w-4"></lucide-icon>
+        </button>
+
+        <div class="hidden sm:flex items-center space-x-3">
+          <!-- Divider -->
+          <div class="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
+          <div>
+            <h1 class="text-xs font-black text-[#005CA2] dark:text-[#53AAE1] uppercase tracking-widest leading-tight">
+              Universidad Técnica de Machala
+            </h1>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">
+              Portal de Inteligencia de Negocios · Dirección de Admisión
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Controls -->
+      <div class="flex items-center space-x-2">
+
+        <!-- Role Badge -->
+        <span class="role-badge hidden md:inline-flex">
+          <lucide-icon [name]="UserCheck" class="h-3 w-3 mr-1.5"></lucide-icon>
+          {{ getRoleLabel(currentRole()) }}
+        </span>
+
+        <!-- Dark Mode Toggle -->
+        <button (click)="toggleDarkMode()" class="icon-btn" [title]="(isDarkMode$ | async) ? 'Modo Claro' : 'Modo Oscuro'">
+          @if (isDarkMode$ | async) {
+            <lucide-icon [name]="Sun" class="h-4 w-4 text-amber-400"></lucide-icon>
+          } @else {
+            <lucide-icon [name]="Moon" class="h-4 w-4"></lucide-icon>
+          }
+        </button>
+
+        <!-- User Dropdown -->
+        @if (currentUser()) {
+          <div class="relative">
+            <button (click)="toggleUserMenu()"
+              class="flex items-center space-x-2 pl-1 pr-2 py-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+              <div class="user-avatar">
+                {{ currentUser()?.names?.charAt(0) }}
+              </div>
+              <div class="hidden sm:block text-left">
+                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">
+                  {{ currentUser()?.names }}
+                </p>
+                <p class="text-[10px] text-slate-400 dark:text-slate-500">
+                  {{ getRoleLabel(currentRole()) }}
+                </p>
+              </div>
+              <lucide-icon [name]="ChevronDown" class="h-3.5 w-3.5 text-slate-400"></lucide-icon>
+            </button>
+
+            @if (isUserMenuOpen()) {
+              <div class="dropdown-menu">
+                <!-- User Info -->
+                <div class="px-4 py-3.5 border-b border-slate-100 dark:border-slate-700/60">
+                  <div class="flex items-center space-x-3">
+                    <div class="user-avatar flex-shrink-0">
+                      {{ currentUser()?.names?.charAt(0) }}
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{{ currentUser()?.names }}</p>
+                      <p class="text-[11px] text-slate-400 dark:text-slate-500 truncate">{{ currentUser()?.username }}</p>
+                      <span class="mt-1 inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#005CA2]/10 text-[#005CA2] dark:bg-[#53AAE1]/15 dark:text-[#53AAE1]">
+                        {{ getRoleLabel(currentRole()) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Logout -->
+                <div class="p-1.5">
+                  <button (click)="logout()"
+                    class="w-full flex items-center px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors cursor-pointer">
+                    <lucide-icon [name]="LogOut" class="h-4 w-4 mr-2.5 flex-shrink-0"></lucide-icon>
+                    <span>Cerrar Sesión</span>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-5 sm:p-6">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+</div>

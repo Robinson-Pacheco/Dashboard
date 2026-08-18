@@ -1,0 +1,503 @@
+<div class="p-6 bg-slate-50 dark:bg-slate-950 min-h-screen">
+  <!-- Header -->
+  <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Dashboard Analytics</h1>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Resumen ejecutivo y análisis de métricas de admisión</p>
+    </div>
+    @if (roleDisplayInfo()) {
+    <div
+      class="flex items-center space-x-3 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 px-4 py-3">
+      <div class="flex-shrink-0">
+        <div class="h-10 w-10 rounded-full flex items-center justify-center {{ roleDisplayInfo()?.color }}">
+          <lucide-icon [name]="roleDisplayInfo()?.icon || Shield" class="h-5 w-5"></lucide-icon>
+        </div>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Rol actual</p>
+        <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ roleDisplayInfo()?.label }}</p>
+      </div>
+      <div class="border-l border-slate-200 dark:border-slate-800 pl-3 ml-2">
+        <p class="text-xs text-slate-500 dark:text-slate-400">{{ roleDisplayInfo()?.description }}</p>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white dark:bg-slate-900 shadow-md rounded-xl p-4 mb-6 border border-slate-200/80 dark:border-slate-800">
+    <div class="flex items-center mb-3">
+      <lucide-icon [name]="Filter" class="w-5 h-5 text-slate-500 dark:text-slate-400 mr-2"></lucide-icon>
+      <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Filtros</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Período</label>
+        <select [(ngModel)]="selectedPeriod"
+          class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-utmach-blue focus:border-utmach-blue bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+          <option value="">Todos</option>
+          @for (p of availablePeriods(); track p) { <option [value]="p">{{ p }}</option> }
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Año</label>
+        <select [(ngModel)]="selectedYear"
+          class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-utmach-blue focus:border-utmach-blue bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+          <option [value]="undefined">Todos</option>
+          @for (y of availableYears(); track y) { <option [value]="y">{{ y }}</option> }
+        </select>
+      </div>
+      <div class="flex items-end space-x-2 md:col-span-2">
+        <button (click)="applyFilters()"
+          class="px-4 py-2 bg-utmach-blue hover:bg-utmach-blue-600 text-white rounded-lg shadow-sm text-sm font-medium transition-colors">Aplicar</button>
+        @if (selectedPeriod() || selectedYear()) {
+        <button (click)="clearFilters()"
+          class="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg shadow-sm text-sm font-medium transition-colors">Limpiar</button>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+  <div class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-utmach-blue"></div>
+  </div>
+  } @else {
+    <!-- Tab Switcher -->
+    <div class="flex space-x-1 mb-6 bg-slate-200/60 dark:bg-slate-800 rounded-xl p-1 w-fit border border-slate-200 dark:border-slate-700">
+      <button (click)="activeTab.set('resumen')"
+        class="px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer"
+        [ngClass]="activeTab()==='resumen' ? 'utmach-tab-active' : 'utmach-tab-inactive'">
+        Resumen Ejecutivo
+      </button>
+      <button (click)="activeTab.set('detalle')"
+        class="px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer"
+        [ngClass]="activeTab()==='detalle' ? 'utmach-tab-active' : 'utmach-tab-inactive'">
+        Vista Detallada
+      </button>
+    </div>
+
+    <!-- Executive Summary Tab -->
+    @if (activeTab() === 'resumen' && execStats()) {
+      <!-- Primary KPI Cards Row 1 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <!-- Card 1: Total Postulantes -->
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-md border border-slate-200/80 dark:border-slate-800 hover:shadow-lg transition-shadow">
+          <div class="flex items-center">
+            <div class="h-12 w-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-utmach-blue dark:text-blue-400 flex-shrink-0">
+              <lucide-icon [name]="Users" class="h-6 w-6"></lucide-icon>
+            </div>
+            <div class="ml-4 flex-1 min-w-0">
+              <div class="flex items-center gap-1.5">
+                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Postulantes</p>
+                <app-info-tooltip description="Número total de postulantes registrados en el período seleccionado"></app-info-tooltip>
+              </div>
+              <p class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ execStats()?.totalPostulantes || 0 | number }}</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Registrados en el sistema</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Promedio General -->
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-md border border-slate-200/80 dark:border-slate-800 hover:shadow-lg transition-shadow">
+          <div class="flex items-center">
+            <div class="h-12 w-12 rounded-xl bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center text-utmach-sky dark:text-sky-400 flex-shrink-0">
+              <lucide-icon [name]="Award" class="h-6 w-6"></lucide-icon>
+            </div>
+            <div class="ml-4 flex-1 min-w-0">
+              <div class="flex items-center gap-1.5">
+                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Promedio General</p>
+                <app-info-tooltip description="Puntaje promedio obtenido por todos los postulantes"></app-info-tooltip>
+              </div>
+              <p class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ execStats()?.promedioGeneral || 0 | number:'1.2-2' }}</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Puntaje medio de examen</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Carrera + Demandada -->
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-md border border-slate-200/80 dark:border-slate-800 hover:shadow-lg transition-shadow lg:col-span-2">
+          <div class="flex items-start">
+            <div class="h-12 w-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+              <lucide-icon [name]="GraduationCap" class="h-6 w-6"></lucide-icon>
+            </div>
+            <div class="ml-4 min-w-0 flex-1">
+              <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Carrera + Demandada</p>
+              <p class="text-base font-bold text-slate-900 dark:text-white truncate mt-0.5" [title]="execStats()?.carreraMasDemandada?.carrera">
+                {{ execStats()?.carreraMasDemandada?.carrera || 'Sin datos' }}
+              </p>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                  {{ execStats()?.carreraMasDemandada?.postulantes || 0 | number }} postulantes
+                </span>
+                <span class="text-xs text-slate-400">Principal opción</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secondary Executive KPI Row 2 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <!-- Asignación de Cupos -->
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-md border border-slate-200/80 dark:border-slate-800 hover:shadow-lg transition-shadow">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                <lucide-icon [name]="CheckCircle2" class="h-5 w-5"></lucide-icon>
+              </div>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cupos Asignados</span>
+            </div>
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+              {{ admitidosStats().pctAdmitidos }}%
+            </span>
+          </div>
+          <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ admitidosStats().admitidos | number }}</p>
+          <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <span>Sin Cupo: {{ admitidosStats().noAdmitidos | number }}</span>
+            <span class="font-medium text-slate-700 dark:text-slate-300">Tasa Asignación</span>
+          </div>
+        </div>
+
+        <!-- Mediana Central de Puntaje (Estadística BI) -->
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-md border border-slate-200/80 dark:border-slate-800 hover:shadow-lg transition-shadow">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+                <lucide-icon [name]="Brain" class="h-5 w-5"></lucide-icon>
+              </div>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Puntaje Mediano</span>
+            </div>
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300">
+              Mediana BI
+            </span>
+          </div>
+          <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+            {{ medianaStats().mediana || (execStats()?.promedioGeneral | number:'1.1-1') }} <span class="text-xs font-normal text-slate-400">pts</span>
+          </p>
+          <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <span>Desv. Est.: {{ medianaStats().stdDev || 'N/A' }} pts</span>
+            <span class="font-medium text-indigo-600 dark:text-indigo-400">Mediana Central</span>
+          </div>
+        </div>
+
+        <!-- Inclusión / Discapacidad -->
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-md border border-slate-200/80 dark:border-slate-800 hover:shadow-lg transition-shadow">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                <lucide-icon [name]="Accessibility" class="h-5 w-5"></lucide-icon>
+              </div>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Inclusión</span>
+            </div>
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
+              {{ disability()?.disabilityPercentage || '0' }}%
+            </span>
+          </div>
+          <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ disability()?.withDisabilityCard || 0 | number }}</p>
+          <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <span>Con Carnet Registrado</span>
+            <span class="font-medium text-purple-600 dark:text-purple-400">Política Inclusión</span>
+          </div>
+        </div>
+
+        <!-- Tipo de Educación Predominante -->
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-md border border-slate-200/80 dark:border-slate-800 hover:shadow-lg transition-shadow">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="p-2 rounded-lg bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400">
+                <lucide-icon [name]="Building2" class="h-5 w-5"></lucide-icon>
+              </div>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Educación Origen</span>
+            </div>
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300">
+              {{ topEducationList()[0]?.porcentaje || '0' }}%
+            </span>
+          </div>
+          <p class="text-lg font-bold text-slate-900 dark:text-white truncate">{{ topEducationList()[0]?.tipo || 'N/A' }}</p>
+          <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <span>{{ topEducationList()[0]?.cantidad || 0 | number }} postulantes</span>
+            <span class="font-medium text-slate-700 dark:text-slate-300">Sostenimiento</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Visual Analysis Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Gender Demographics Card -->
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-md border border-slate-200/80 dark:border-slate-800">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <lucide-icon [name]="PieChart" class="h-5 w-5 text-utmach-blue"></lucide-icon>
+              Distribución por Género
+            </h3>
+            <span class="text-xs text-slate-400 font-medium">Postulantes</span>
+          </div>
+
+          @if (execStats()?.distribucionGenero?.length) {
+            <div class="space-y-3 mb-4">
+              @for (g of execStats()?.distribucionGenero; track g.genero) {
+                <div>
+                  <div class="flex justify-between items-center text-xs mb-1">
+                    <span class="font-semibold text-slate-700 dark:text-slate-300">{{ g.genero }}</span>
+                    <span class="font-bold text-slate-900 dark:text-white">{{ g.cantidad | number }} ({{ g.porcentaje }}%)</span>
+                  </div>
+                  <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all duration-500"
+                      [ngClass]="g.genero === 'MASCULINO' ? 'bg-utmach-blue' : 'bg-utmach-red'"
+                      [style.width.%]="g.porcentaje">
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="h-44 mt-2">
+            <canvas baseChart [data]="genderChartData()" [options]="pieChartOptions()" type="pie"></canvas>
+          </div>
+        </div>
+
+        <!-- Component Performance Summary Card -->
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-md border border-slate-200/80 dark:border-slate-800">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <lucide-icon [name]="BarChart3" class="h-5 w-5 text-utmach-sky"></lucide-icon>
+              Rendimiento por Componente
+            </h3>
+            <span class="text-xs text-slate-400 font-medium">Examen</span>
+          </div>
+
+          @if (performance().length) {
+            <div class="space-y-3.5">
+              @for (comp of performance(); track comp.component) {
+                <div class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+                  <div class="flex justify-between items-center text-xs mb-1">
+                    <span class="font-bold text-slate-800 dark:text-slate-200 truncate pr-2">{{ comp.component }}</span>
+                    <span class="font-black text-utmach-blue dark:text-sky-400 bg-blue-50 dark:bg-blue-900/40 px-2 py-0.5 rounded text-xs">
+                      {{ comp.averageScore | number:'1.1-1' }} pts
+                    </span>
+                  </div>
+                  <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mt-1.5">
+                    <div class="bg-gradient-to-r from-utmach-blue to-utmach-sky h-2 rounded-full"
+                      [style.width.%]="(comp.averageScore / 1000) * 100">
+                    </div>
+                  </div>
+                  <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                    <span>Mín: {{ comp.minScore }}</span>
+                    <span>Máx: {{ comp.maxScore }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="text-xs text-slate-400 text-center py-8">Cargando métricas de componentes...</p>
+          }
+        </div>
+
+        <!-- Top 5 Provinces & Institutional Extremes Card -->
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-md border border-slate-200/80 dark:border-slate-800">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <lucide-icon [name]="MapPin" class="h-5 w-5 text-utmach-red"></lucide-icon>
+              Top 5 Provincias
+            </h3>
+            <span class="text-xs text-slate-400 font-medium">Origen</span>
+          </div>
+
+          @if (topProvinces().length) {
+            <div class="space-y-3">
+              @for (prov of topProvinces(); track prov.provincia; let idx = $index) {
+                <div class="flex items-center justify-between text-xs">
+                  <div class="flex items-center space-x-2.5 min-w-0">
+                    <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                      [ngClass]="{
+                        'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300': idx === 0,
+                        'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300': idx > 0
+                      }">
+                      #{{ idx + 1 }}
+                    </span>
+                    <span class="font-semibold text-slate-800 dark:text-slate-200 truncate">{{ prov.provincia }}</span>
+                  </div>
+                  <div class="text-right">
+                    <span class="font-bold text-slate-900 dark:text-white">{{ prov.cantidad | number }}</span>
+                    <span class="text-slate-400 ml-1 text-[11px]">({{ prov.porcentaje }}%)</span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="text-xs text-slate-400 text-center py-8">Cargando provincias...</p>
+          }
+
+          <!-- Institutional Best/Worst Highlights -->
+          <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Rendimiento Institucional Extremo</p>
+
+            @if (execStats()?.instituciones?.mejorRendimiento; as inst) {
+              <div class="bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-lg border border-emerald-200 dark:border-emerald-800/60">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Mejor Promedio</span>
+                    <p class="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[160px]">{{ inst.nombre }}</p>
+                  </div>
+                  <span class="text-lg font-black text-emerald-600 dark:text-emerald-400">{{ inst.promedio | number:'1.2-2' }}</span>
+                </div>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{{ inst.estudiantes }} estudiantes evaluados</p>
+              </div>
+            }
+
+            @if (execStats()?.instituciones?.menorRendimiento; as inst) {
+              <div class="bg-rose-50 dark:bg-rose-950/30 p-3 rounded-lg border border-rose-200 dark:border-rose-800/60">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">Menor Promedio</span>
+                    <p class="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[160px]">{{ inst.nombre }}</p>
+                  </div>
+                  <span class="text-lg font-black text-rose-600 dark:text-rose-400">{{ inst.promedio | number:'1.2-2' }}</span>
+                </div>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{{ inst.estudiantes }} estudiantes evaluados</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+  <!-- Detail Tab -->
+  @if (activeTab() === 'detalle') {
+  <!-- Demographics + Disability + Performance -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    @if (demographics()) {
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+      <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Demografía</h2>
+      <div class="space-y-4">
+        <div>
+          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Género</h3>
+          @for (item of demographics()?.gender || []; track item._id) {
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm text-gray-600 dark:text-gray-400">{{ item._id }}</span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ item.count | number }}</span>
+          </div>
+          }
+        </div>
+        <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipo de Unidad Educativa</h3>
+          @for (item of demographics()?.educationalUnit || []; track item._id) {
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm text-gray-600 dark:text-gray-400">{{ item._id || 'No especificado' }}</span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ item.count | number }}</span>
+          </div>
+          }
+        </div>
+        <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Top 5 Provincias</h3>
+          @for (item of demographics()?.province?.slice(0, 5) || []; track item._id) {
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm text-gray-600 dark:text-gray-400">{{ item._id }}</span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ item.count | number }}</span>
+          </div>
+          }
+        </div>
+      </div>
+      <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Distribución por Género</h3>
+        <div class="h-64"><canvas baseChart [data]="genderChartData()" [options]="pieChartOptions()"
+            type="pie"></canvas></div>
+      </div>
+      <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Distribución por Tipo de Educación</h3>
+        <div class="h-64"><canvas baseChart [data]="educationChartData()" [options]="pieChartOptions()"
+            type="doughnut"></canvas></div>
+      </div>
+    </div>
+    }
+
+    @if (disability()) {
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+      <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        <lucide-icon [name]="Accessibility" class="inline-block h-5 w-5 mr-2"></lucide-icon>Discapacidad
+      </h2>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="bg-utmach-blue-50 dark:bg-utmach-blue-900/20 p-4 rounded-lg">
+          <p class="text-sm text-gray-600 dark:text-gray-400">Con Carnet</p>
+          <p class="text-2xl font-bold text-utmach-blue dark:text-utmach-sky">{{ disability()?.withDisabilityCard || 0 |
+            number }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ disability()?.disabilityPercentage }}%</p>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+          <p class="text-sm text-gray-600 dark:text-gray-400">Total</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ disability()?.totalApplicants || 0 | number }}
+          </p>
+        </div>
+      </div>
+      @if (disability()?.disabilityTypeBreakdown?.length) {
+      <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+        @for (item of disability()?.disabilityTypeBreakdown || []; track item._id) {
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm text-gray-600 dark:text-gray-400">{{ item._id }}</span>
+          <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ item.count | number }}</span>
+        </div>
+        }
+      </div>
+      <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Distribución por Tipo</h3>
+        <div class="h-64"><canvas baseChart [data]="disabilityChartData()" [options]="barChartOptions()"
+            type="bar"></canvas></div>
+      </div>
+      }
+    </div>
+    }
+  </div>
+
+  <!-- Performance by Component -->
+  @if (performance().length > 0) {
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-6">
+    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Rendimiento por Componente</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-700">
+          <tr>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Componente</th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Promedio</th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Máximo</th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Mínimo</th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Postulantes</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+          @for (comp of performance(); track comp.component) {
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ comp.component
+              }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{{ comp.averageScore |
+              number:'1.2-2' }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{{ comp.maxScore }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{{ comp.minScore }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{{ comp.applicantCount |
+              number }}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Comparativa de Rendimiento</h3>
+      <div class="h-80"><canvas baseChart [data]="performanceChartData()" [options]="mixedChartOptions()"
+          type="bar"></canvas></div>
+    </div>
+  </div>
+  }
+  }
+  }
+</div>

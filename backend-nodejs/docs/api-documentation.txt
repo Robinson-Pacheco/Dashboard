@@ -1,0 +1,250 @@
+============================================================
+DOCUMENTACIÓN DE API: Business Intelligence API for University Admission Data
+============================================================
+
+Descripción: API for processing and analyzing university admission test data
+
+Versión: 1.0.0
+Servidores: http://localhost:3000
+
+
+----------------------------------------
+ESQUEMAS DE DATOS (MODELOS)
+----------------------------------------
+
+User:
+  Propiedades:
+    - username: string - Unique username for the user (REQUERIDO)
+    - password: string - User password (will be hashed) (REQUERIDO)
+    - email: string - User email address (REQUERIDO)
+    - names: string - Full name of the user (REQUERIDO)
+    - role: string - User role for access control
+
+UserResponse:
+  Propiedades:
+    - id: string - Unique identifier for the user
+    - username: string - Unique username for the user
+    - email: string - User email address
+    - names: string - Full name of the user
+    - role: string - User role for access control
+    - createdAt: string - Timestamp when the user was created
+    - updatedAt: string - Timestamp when the user was last updated
+
+LoginRequest:
+  Propiedades:
+    - username: string - Username for authentication (REQUERIDO)
+    - password: string - Password for authentication (REQUERIDO)
+
+LoginResponse:
+  Propiedades:
+    - success: boolean
+    - token: string - JWT authentication token
+    - user: object
+
+AdmissionData:
+  Propiedades:
+    - _id: string - Unique identifier for the admission record
+    - period: string - Academic period (e.g., 2025-2)
+    - year: number - Academic year
+    - studentId: string - Student identification number
+    - studentName: string - Full name of the student
+    - scores: object - Object containing scores for different test subjects
+    - totalScore: number - Total score across all subjects
+    - status: string - Admission status based on scores
+    - uploadedBy: string - ID of the user who uploaded this data
+    - createdAt: string - Timestamp when the record was created
+
+AdmissionStats:
+  Propiedades:
+    - totalStudents: number - Total number of students
+    - averageScore: number - Average score across all students
+    - maxScore: number - Highest score achieved
+    - minScore: number - Lowest score achieved
+    - approvedCount: number - Number of students who were approved
+    - rejectedCount: number - Number of students who were rejected
+    - pendingCount: number - Number of students with pending status
+
+Error:
+  Propiedades:
+    - success: boolean
+    - error: string - Error message
+
+DemographicBreakdown:
+  Propiedades:
+    - gender: object
+    - residence: object
+    - educationType: object
+
+ComponentPerformance:
+  Propiedades:
+    - components: array
+
+DisabilityStatistics:
+  Propiedades:
+    - withDisability: number - Number of students with disabilities
+    - withoutDisability: number - Number of students without disabilities
+    - disabilityTypes: object
+
+AdmissionTrends:
+  Propiedades:
+    - periods: array
+
+DashboardData:
+  Propiedades:
+    - statistics: object
+    - trends: object
+    - demographics: object
+    - performance: object
+    - disability: object
+
+
+----------------------------------------
+ENDPOINTS DE LA API
+----------------------------------------
+
+GET /api/bi/statistics
+  Resumen: Get admission statistics by period and year
+  Descripción: Returns statistical data about admissions for a specific period and year
+  Etiquetas: Business Intelligence
+  Seguridad: Requiere autenticación
+  Parámetros:
+    - period (query): Academic period (e.g., 20252)
+    - year (query): Academic year (e.g., 2025)
+  Respuestas:
+    200: Successful operation
+    401: Unauthorized
+
+GET /api/bi/trends
+  Resumen: Get admission trends over time
+  Descripción: Returns admission data trends across multiple periods
+  Etiquetas: Business Intelligence
+  Seguridad: Requiere autenticación
+  Respuestas:
+    200: Successful operation
+    401: Unauthorized
+
+GET /api/bi/demographics
+  Resumen: Get demographic breakdown of applicants
+  Descripción: Returns demographic data about applicants including gender, residence, and education type
+  Etiquetas: Business Intelligence
+  Seguridad: Requiere autenticación
+  Respuestas:
+    200: Successful operation
+    401: Unauthorized
+
+GET /api/bi/performance
+  Resumen: Get performance analysis by component
+  Descripción: Returns performance data broken down by test components
+  Etiquetas: Business Intelligence
+  Seguridad: Requiere autenticación
+  Respuestas:
+    200: Successful operation
+    401: Unauthorized
+
+GET /api/bi/disability
+  Resumen: Get disability statistics
+  Descripción: Returns statistics about applicants with disabilities
+  Etiquetas: Business Intelligence
+  Seguridad: Requiere autenticación
+  Respuestas:
+    200: Successful operation
+    401: Unauthorized
+
+GET /api/bi/periods-years
+  Resumen: Get available periods and years
+  Descripción: Returns a list of available periods and years from admission data
+  Etiquetas: Business Intelligence
+  Seguridad: Requiere autenticación
+  Respuestas:
+    200: Successful operation
+    401: Unauthorized
+
+GET /api/bi/dashboard
+  Resumen: Get comprehensive dashboard data
+  Descripción: Returns all necessary data for the business intelligence dashboard
+  Etiquetas: Business Intelligence
+  Seguridad: Requiere autenticación
+  Parámetros:
+    - period (query): Academic period (e.g., 20252)
+    - year (query): Academic year (e.g., 2025)
+  Respuestas:
+    200: Successful operation
+    401: Unauthorized
+
+POST /api/admission/upload
+  Resumen: Upload and process admission data from Excel file
+  Etiquetas: Admission Data
+  Seguridad: Requiere autenticación
+  Respuestas:
+    200: File processed successfully
+    400: Bad request - Missing file or parameters
+    401: Unauthorized - Invalid or missing token
+
+GET /api/admission/
+  Resumen: Get admission data with optional filters
+  Etiquetas: Admission Data
+  Seguridad: Requiere autenticación
+  Parámetros:
+    - period (query): Filter by academic period (e.g., 2025-2)
+    - year (query): Filter by academic year
+    - page (query): Page number for pagination
+    - limit (query): Number of records per page
+  Respuestas:
+    200: Admission data retrieved successfully
+    401: Unauthorized - Invalid or missing token
+
+GET /api/admission/stats
+  Resumen: Get admission statistics
+  Etiquetas: Admission Data
+  Seguridad: Requiere autenticación
+  Parámetros:
+    - period (query): Filter by academic period (e.g., 2025-2)
+    - year (query): Filter by academic year
+  Respuestas:
+    200: Admission statistics retrieved successfully
+    401: Unauthorized - Invalid or missing token
+
+POST /api/auth/register
+  Resumen: Register a new user
+  Etiquetas: Authentication
+  Respuestas:
+    201: User registered successfully
+    400: Bad request - User already exists or validation error
+
+POST /api/auth/login
+  Resumen: Authenticate user and get JWT token
+  Etiquetas: Authentication
+  Respuestas:
+    200: Login successful
+    401: Invalid credentials
+
+GET /api/auth/me
+  Resumen: Get current user information
+  Etiquetas: Authentication
+  Seguridad: Requiere autenticación
+  Respuestas:
+    200: User information retrieved successfully
+    401: Unauthorized - Invalid or missing token
+
+GET /api/auth/users
+  Resumen: Get all users (Admin only)
+  Etiquetas: Authentication
+  Seguridad: Requiere autenticación
+  Respuestas:
+    200: Users retrieved successfully
+    401: Unauthorized - Invalid or missing token
+    403: Forbidden - Admin access required
+
+DELETE /api/auth/users/{id}
+  Resumen: Delete a user (Admin only)
+  Etiquetas: Authentication
+  Seguridad: Requiere autenticación
+  Parámetros:
+    - id (path): User ID to delete (REQUERIDO)
+  Respuestas:
+    200: User deleted successfully
+    400: Bad request - Cannot delete own account
+    401: Unauthorized - Invalid or missing token
+    403: Forbidden - Admin access required
+    404: User not found
+

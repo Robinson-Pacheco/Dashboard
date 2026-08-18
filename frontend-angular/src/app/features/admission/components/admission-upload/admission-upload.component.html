@@ -1,0 +1,218 @@
+<div class="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center">
+      <button
+        (click)="goToList()"
+        class="mr-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+      >
+        <lucide-icon [name]="ArrowLeft" class="w-6 h-6 text-gray-700 dark:text-gray-300"></lucide-icon>
+      </button>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+        Subir Datos de Admisión
+      </h1>
+    </div>
+  </div>
+
+  <!-- Toast Test Buttons (Temporary) -->
+  <!-- <div class="max-w-3xl mx-auto mb-4 p-4 bg-utmach-blue-50 dark:bg-purple-900/20 border border-utmach-blue-200 dark:border-utmach-blue-800 rounded-lg">
+    <h2 class="text-sm font-semibold text-utmach-blue dark:text-utmach-sky mb-3">
+      Botones de prueba para Toasts
+    </h2>
+    <div class="flex flex-wrap gap-2">
+      <button
+        (click)="testSuccess()"
+        class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition-colors"
+      >
+        Success
+      </button>
+      <button
+        (click)="testError()"
+        class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md transition-colors"
+      >
+        Error
+      </button>
+      <button
+        (click)="testWarning()"
+        class="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white text-sm rounded-md transition-colors"
+      >
+        Warning
+      </button>
+      <button
+        (click)="testInfo()"
+        class="px-3 py-1.5 bg-utmach-blue hover:bg-utmach-blue-700 text-white text-sm rounded-md transition-colors"
+      >
+        Info
+      </button>
+      <button
+        (click)="testLongMessage()"
+        class="px-3 py-1.5 bg-utmach-blue hover:bg-utmach-blue-700 text-white text-sm rounded-md transition-colors"
+      >
+        Mensaje largo
+      </button>
+    </div>
+  </div> -->
+
+  <div class="max-w-3xl mx-auto">
+    <!-- Upload Card -->
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+      <!-- Instructions -->
+      <div class="mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          Instrucciones
+        </h2>
+        <ul class="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
+          <li>Ingrese el período académico (ej: 2025-2) y el año</li>
+          <li>Seleccione un archivo Excel (.xlsx o .xls) con los datos de admisión</li>
+          <li>El archivo debe contener las columnas requeridas según el formato establecido</li>
+          <li>Los datos serán procesados y validados automáticamente</li>
+        </ul>
+      </div>
+
+      <!-- Period and Year Inputs -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+          <label for="period" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Período Académico *
+          </label>
+          <input
+            id="period"
+            type="text"
+            [(ngModel)]="period"
+            placeholder="Ej: 2025-2"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-utmach-blue focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Formato: YYYY-N (ej: 2025-1, 2025-2)
+          </p>
+        </div>
+        <div>
+          <label for="year" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Año *
+          </label>
+          <input
+            id="year"
+            type="number"
+            [(ngModel)]="year"
+            placeholder="Ej: 2025"
+            min="2000"
+            max="2100"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-utmach-blue focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Año académico (ej: 2025)
+          </p>
+        </div>
+      </div>
+
+      <!-- Drop Zone -->
+      <div 
+        (dragover)="onDragOver($event)"
+        (drop)="onDrop($event)"
+        class="border-2 border-dashed rounded-lg p-8 text-center transition-colors"
+        [ngClass]="{
+          'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500': !selectedFile(),
+          'border-blue-500 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/10': selectedFile()
+        }"
+      >
+        @if (!selectedFile()) {
+          <div class="space-y-4">
+            <div class="flex justify-center">
+              <lucide-icon [name]="Upload" class="w-16 h-16 text-gray-400 dark:text-gray-500"></lucide-icon>
+            </div>
+            <div>
+              <p class="text-gray-600 dark:text-gray-300 mb-2">
+                Arrastra y suelta tu archivo aquí o
+              </p>
+              <label class="cursor-pointer">
+                <span class="px-4 py-2 bg-utmach-blue hover:bg-utmach-blue-700 text-white rounded-md font-medium transition-colors inline-block">
+                  Seleccionar Archivo
+                </span>
+                <input 
+                  type="file" 
+                  accept=".xlsx,.xls" 
+                  (change)="onFileSelected($event)"
+                  class="hidden"
+                >
+              </label>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Formatos aceptados: .xlsx, .xls
+            </p>
+          </div>
+        } @else {
+          <div class="space-y-4">
+            <div class="flex justify-center">
+              <lucide-icon [name]="FileText" class="w-16 h-16 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+            </div>
+            <div>
+              <p class="text-lg font-medium text-gray-900 dark:text-white">
+                {{ selectedFile()?.name }}
+              </p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ (selectedFile()?.size || 0) / 1024 | number:'1.0-2' }} KB
+              </p>
+            </div>
+            <button 
+              (click)="removeFile()"
+              class="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm font-medium"
+            >
+              Cambiar archivo
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Upload Status -->
+      @if (uploadSuccess()) {
+        <div class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center">
+          <lucide-icon [name]="CheckCircle" class="w-5 h-5 text-green-600 dark:text-green-400 mr-3"></lucide-icon>
+          <div>
+            <p class="text-green-800 dark:text-green-200 font-medium">
+              ¡Archivo procesado exitosamente!
+            </p>
+            <p class="text-green-700 dark:text-green-300 text-sm">
+              {{ processedRecords() }} registros importados
+            </p>
+          </div>
+        </div>
+      }
+
+      @if (uploadError()) {
+        <div class="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center">
+          <lucide-icon [name]="XCircle" class="w-5 h-5 text-red-600 dark:text-red-400 mr-3"></lucide-icon>
+          <div>
+            <p class="text-red-800 dark:text-red-200 font-medium">
+              Error al procesar el archivo
+            </p>
+            <p class="text-red-700 dark:text-red-300 text-sm">
+              {{ uploadError() }}
+            </p>
+          </div>
+        </div>
+      }
+
+      <!-- Action Buttons -->
+      <div class="mt-6 flex justify-end space-x-3">
+        <button 
+          (click)="goToList()"
+          class="px-4 py-2 border rounded-md shadow-sm text-sm font-medium bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+        >
+          Cancelar
+        </button>
+        <button 
+          (click)="uploadFile()"
+          [disabled]="!selectedFile() || !period() || !year() || isUploading()"
+          class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-utmach-blue hover:bg-utmach-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+        >
+          @if (isUploading()) {
+            <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+            Procesando...
+          } @else {
+            <lucide-icon [name]="Upload" class="w-4 h-4 mr-2"></lucide-icon>
+            Subir Archivo
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

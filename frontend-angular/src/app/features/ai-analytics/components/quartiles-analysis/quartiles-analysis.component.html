@@ -1,0 +1,156 @@
+<div class="space-y-6">
+  <div class="flex items-center space-x-3">
+    <lucide-icon [img]="Box" class="w-6 h-6 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+    <div>
+      <h2 class="text-xl font-bold text-gray-900 dark:text-white">Análisis de Cuartiles con IA</h2>
+      <p class="text-sm text-gray-600 dark:text-gray-400">Obtén una interpretación educativa de los cuartiles Q1, Q2, Q3</p>
+    </div>
+  </div>
+
+  @if (isLoadingData()) {
+    <app-ai-loader [messages]="['Conectando con la API...', 'Cargando períodos disponibles...', 'Obteniendo componentes...']" title="Cargando Datos"></app-ai-loader>
+  }
+
+  @if (!isLoading() && !streamedAnalysis() && hasFormData()) {
+    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Seleccionar Parámetros de Análisis</h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Periodo</label>
+          <select
+            [(ngModel)]="periodValue"
+            (ngModelChange)="onFiltersChange()"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+            @for (period of availablePeriods(); track period) {
+              <option [value]="period">{{ period }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Año</label>
+          <select
+            [(ngModel)]="yearValue"
+            (ngModelChange)="onFiltersChange()"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+            @for (year of availableYears(); track year) {
+              <option [value]="year">{{ year }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Componente</label>
+          <select
+            [(ngModel)]="componentValue"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+            @for (comp of availableComponents(); track comp) {
+              <option [value]="comp">{{ comp }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      @if (distributionData()) {
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 mb-6 border border-gray-200 dark:border-gray-700">
+          <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Estadísticas del Periodo</h4>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div><span class="text-gray-500 dark:text-gray-400">Q1 (25%)</span><p class="font-semibold text-gray-900 dark:text-white">{{ distributionData()!.statistics.q1.toFixed(2) }}</p></div>
+            <div><span class="text-gray-500 dark:text-gray-400">Mediana (Q2)</span><p class="font-semibold text-gray-900 dark:text-white">{{ distributionData()!.statistics.median.toFixed(2) }}</p></div>
+            <div><span class="text-gray-500 dark:text-gray-400">Q3 (75%)</span><p class="font-semibold text-gray-900 dark:text-white">{{ distributionData()!.statistics.q3.toFixed(2) }}</p></div>
+            <div><span class="text-gray-500 dark:text-gray-400">IQR</span><p class="font-semibold text-gray-900 dark:text-white">{{ distributionData()!.statistics.iqr.toFixed(2) }}</p></div>
+            <div><span class="text-gray-500 dark:text-gray-400">Mínimo</span><p class="font-semibold text-gray-900 dark:text-white">{{ distributionData()!.statistics.min }}</p></div>
+            <div><span class="text-gray-500 dark:text-gray-400">Máximo</span><p class="font-semibold text-gray-900 dark:text-white">{{ distributionData()!.statistics.max }}</p></div>
+            <div><span class="text-gray-500 dark:text-gray-400">Media</span><p class="font-semibold text-gray-900 dark:text-white">{{ distributionData()!.statistics.mean.toFixed(2) }}</p></div>
+            <div><span class="text-gray-500 dark:text-gray-400">Desv. Est.</span><p class="font-semibold text-gray-900 dark:text-white">{{ distributionData()!.statistics.standardDeviation.toFixed(2) }}</p></div>
+          </div>
+          <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <p class="text-sm text-gray-600 dark:text-gray-400">Total estudiantes: <span class="font-semibold text-gray-900 dark:text-white">{{ distributionData()!.totalStudents }}</span></p>
+          </div>
+        </div>
+      }
+
+      <div class="flex space-x-3">
+        <button
+          (click)="analyze()"
+          [disabled]="isLoadingAI()"
+          class="px-6 py-2 bg-utmach-blue text-white rounded-lg font-medium hover:bg-utmach-blue-700 transition-colors duration-200 flex items-center space-x-2 disabled:opacity-50">
+          @if (isLoadingAI()) {
+            <lucide-icon [img]="Loader2" class="w-4 h-4 animate-spin"></lucide-icon>
+            <span>Analizando...</span>
+          } @else {
+            <lucide-icon [img]="Sparkles" class="w-4 h-4"></lucide-icon>
+            <span>Generar Análisis con IA</span>
+          }
+        </button>
+        <button
+          (click)="reset()"
+          [disabled]="isLoading()"
+          class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200">
+          Restablecer
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (isLoadingAI()) {
+    <app-ai-loader [messages]="loadingMessages" title="Generando Análisis con IA"></app-ai-loader>
+  }
+
+  @if (isStreamingComplete()) {
+    <div class="bg-gradient-to-br from-utmach-blue-50 to-utmach-sky-50 dark:from-utmach-blue-900/20 dark:to-utmach-sky-900/20 rounded-lg p-6 border border-utmach-blue-200 dark:border-utmach-blue-800">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center space-x-3">
+          <lucide-icon [img]="TrendingUp" class="w-6 h-6 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+          <div>
+            <h3 class="text-lg font-semibold text-utmach-blue dark:text-utmach-sky">Análisis Generado con IA</h3>
+            <p class="text-sm text-utmach-blue dark:text-utmach-sky">{{ componentValue }} - Periodo {{ periodValue }}-{{ yearValue }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 mb-4 min-h-[200px]">
+        <div class="prose prose-purple dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 markdown-content"
+             [innerHTML]="streamedAnalysis() | markdown"></div>
+      </div>
+
+      @if (getProviderInfo()) {
+        <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-3">
+          <span>{{ getProviderInfo() }}</span>
+          @if (getTokenUsage()) {
+            <span>{{ getTokenUsage() }}</span>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (!analysisData() && !isLoading() && !streamedAnalysis() && hasFormData()) {
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-start space-x-3">
+      <lucide-icon [img]="AlertTriangle" class="w-5 h-5 text-utmach-blue dark:text-utmach-sky flex-shrink-0 mt-0.5"></lucide-icon>
+      <div>
+        <h4 class="font-semibold text-utmach-blue dark:text-utmach-sky mb-1">¿Cómo funciona?</h4>
+        <p class="text-sm text-utmach-blue dark:text-utmach-sky">
+          Selecciona un periodo, año y componente. El sistema cargará automáticamente los datos estadísticos reales de la base de datos
+          y luego generará un análisis educativo detallado utilizando Inteligencia Artificial.
+        </p>
+      </div>
+    </div>
+  }
+</div>
+
+<style>
+  .markdown-content h1 { font-size: 1.5rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; }
+  .markdown-content h2 { font-size: 1.25rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; }
+  .markdown-content h3 { font-size: 1.125rem; font-weight: bold; margin-top: 0.75rem; margin-bottom: 0.5rem; }
+  .markdown-content p { margin-bottom: 0.75rem; line-height: 1.75; }
+  .markdown-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.75rem; }
+  .markdown-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.75rem; }
+  .markdown-content li { margin-bottom: 0.25rem; }
+  .markdown-content strong { font-weight: bold; }
+  .markdown-content em { font-style: italic; }
+  .markdown-content blockquote { border-left: 4px solid #a855f7; padding-left: 1rem; margin: 1rem 0; color: #6b7280; }
+  .markdown-content code { background: rgba(168, 85, 247, 0.1); padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875rem; }
+  .markdown-content pre { background: rgba(168, 85, 247, 0.1); padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 1rem 0; }
+</style>

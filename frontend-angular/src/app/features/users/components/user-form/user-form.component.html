@@ -1,0 +1,179 @@
+<div class="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+  <div class="flex items-center mb-6">
+    <button 
+      (click)="goBack()" 
+      class="mr-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+    >
+      <lucide-icon [name]="ArrowLeft" class="w-6 h-6 text-gray-700 dark:text-gray-300"></lucide-icon>
+    </button>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+      {{ isEditMode ? 'Editar Usuario' : 'Nuevo Usuario' }}
+    </h1>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+    @if (isLoading) {
+      <div class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    } @else {
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Nombre de Usuario *
+            </label>
+            <input 
+              id="username" 
+              type="text" 
+              formControlName="username" 
+              class="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-utmach-blue focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              [ngClass]="{ 
+                'border-red-500 dark:border-red-500': userForm.get('username')?.invalid && userForm.get('username')?.touched,
+                'border-gray-300 dark:border-gray-600': !(userForm.get('username')?.invalid && userForm.get('username')?.touched)
+              }"
+            >
+            @if (userForm.get('username')?.invalid && userForm.get('username')?.touched) {
+              <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                @if (userForm.get('username')?.errors?.['required']) {
+                  El nombre de usuario es obligatorio
+                } @else if (userForm.get('username')?.errors?.['minlength']) {
+                  El nombre de usuario debe tener al menos 3 caracteres
+                }
+              </p>
+            }
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Email *
+            </label>
+            <input 
+              id="email" 
+              type="email" 
+              formControlName="email" 
+              class="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-utmach-blue focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              [ngClass]="{ 
+                'border-red-500 dark:border-red-500': userForm.get('email')?.invalid && userForm.get('email')?.touched,
+                'border-gray-300 dark:border-gray-600': !(userForm.get('email')?.invalid && userForm.get('email')?.touched)
+              }"
+            >
+            @if (userForm.get('email')?.invalid && userForm.get('email')?.touched) {
+              <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                @if (userForm.get('email')?.errors?.['required']) {
+                  El email es obligatorio
+                } @else if (userForm.get('email')?.errors?.['email']) {
+                  El formato del email no es válido
+                }
+              </p>
+            }
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="names" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Nombres Completos *
+            </label>
+            <input 
+              id="names" 
+              type="text" 
+              formControlName="names" 
+              class="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-utmach-blue focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              [ngClass]="{ 
+                'border-red-500 dark:border-red-500': userForm.get('names')?.invalid && userForm.get('names')?.touched,
+                'border-gray-300 dark:border-gray-600': !(userForm.get('names')?.invalid && userForm.get('names')?.touched)
+              }"
+            >
+            @if (userForm.get('names')?.invalid && userForm.get('names')?.touched) {
+              <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                Los nombres son obligatorios
+              </p>
+            }
+          </div>
+
+          <div>
+            <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Rol *
+            </label>
+            <select 
+              id="role" 
+              formControlName="role" 
+              class="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-utmach-blue focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              [ngClass]="{ 
+                'border-red-500 dark:border-red-500': userForm.get('role')?.invalid && userForm.get('role')?.touched,
+                'border-gray-300 dark:border-gray-600': !(userForm.get('role')?.invalid && userForm.get('role')?.touched)
+              }"
+            >
+              @for (role of roles; track role.value) {
+                <option [value]="role.value">{{ role.label }}</option>
+              }
+            </select>
+            @if (userForm.get('role')?.invalid && userForm.get('role')?.touched) {
+              <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                El rol es obligatorio
+              </p>
+            }
+          </div>
+
+          @if (!isEditMode) {
+            <div>
+              <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Contraseña *
+              </label>
+              <div class="relative">
+                <input 
+                  id="password" 
+                  [type]="showPassword() ? 'text' : 'password'" 
+                  formControlName="password" 
+                  class="w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-utmach-blue focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  [ngClass]="{ 
+                    'border-red-500 dark:border-red-500': userForm.get('password')?.invalid && userForm.get('password')?.touched,
+                    'border-gray-300 dark:border-gray-600': !(userForm.get('password')?.invalid && userForm.get('password')?.touched)
+                  }"
+                >
+                <button 
+                  type="button" 
+                  (click)="togglePasswordVisibility()"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                  aria-label="Toggle password visibility"
+                >
+                  @if (showPassword()) {
+                    <lucide-icon [name]="EyeOff" class="h-5 w-5"></lucide-icon>
+                  } @else {
+                    <lucide-icon [name]="Eye" class="h-5 w-5"></lucide-icon>
+                  }
+                </button>
+              </div>
+              @if (userForm.get('password')?.invalid && userForm.get('password')?.touched) {
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                  @if (userForm.get('password')?.errors?.['required']) {
+                    La contraseña es obligatoria
+                  } @else if (userForm.get('password')?.errors?.['minlength']) {
+                    La contraseña debe tener al menos 6 caracteres
+                  }
+                </p>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <button 
+            type="button" 
+            (click)="goBack()" 
+            class="px-4 py-2 border rounded-md shadow-sm text-sm font-medium bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-utmach-blue dark:focus:ring-offset-gray-800"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            [disabled]="userForm.invalid || isLoading" 
+            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-utmach-blue hover:bg-utmach-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-utmach-blue dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+          >
+            <lucide-icon [name]="Save" class="w-4 h-4 mr-2"></lucide-icon>
+            {{ isEditMode ? 'Actualizar' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

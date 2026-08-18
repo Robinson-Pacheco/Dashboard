@@ -1,0 +1,81 @@
+/* Institutional Login Styles - Universidad Técnica de Machala (UTMACH) */
+
+.font-roboto {
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Institutional colors */
+.text-utmach-blue-main {
+  color: #005CA2;
+}
+
+.bg-utmach-blue-main {
+  background-color: #005CA2;
+}
+
+.text-utmach-sky-main {
+  color: #53AAE1;
+}
+
+.bg-utmach-sky-main {
+  background-color: #53AAE1;
+}
+
+.text-utmach-red-main {
+  color: #C2354A;
+}
+
+.bg-utmach-red-main {
+  background-color: #C2354A;
+}
+
+/* Institutional top accent bar */
+.utmach-accent-bar {
+  height: 5px;
+  background: linear-gradient(90deg, #005CA2 0%, #005CA2 65%, #53AAE1 85%, #C2354A 100%);
+}
+
+/* Primary Button with Roboto typography and smooth micro-interactions */
+.btn-utmach-login {
+  background-color: #005CA2;
+  color: #ffffff;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(0, 92, 162, 0.25);
+}
+
+.btn-utmach-login:hover:not(:disabled) {
+  background-color: #004a82;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 92, 162, 0.35);
+}
+
+.btn-utmach-login:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-utmach-login:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(83, 170, 225, 0.4);
+}
+
+/* Styled Inputs */
+.input-utmach-field {
+  font-family: 'Roboto', sans-serif;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+}
+
+.input-utmach-field:focus {
+  border-color: #005CA2 !important;
+  box-shadow: 0 0 0 3.5px rgba(83, 170, 225, 0.25) !important;
+  outline: none;
+}
+
+/* Error card border using Red accent #C2354A */
+.error-utmach-box {
+  border-left: 4px solid #C2354A;
+  background-color: rgba(194, 53, 74, 0.05);
+}

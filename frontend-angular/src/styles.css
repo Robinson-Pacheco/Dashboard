@@ -1,0 +1,432 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import 'ngx-toastr/toastr';
+
+/* Import Roboto font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================
+   PALETA INSTITUCIONAL - Universidad Tecnica de Machala
+   =====================================================
+   Azul       Pantone 301 EC  - #005ca2
+   Azul Celeste Pantone 2925 EC - #53aae1
+   Rojo       Pantone 185 EC  - #C2354a
+   ===================================================== */
+:root {
+  --utmach-blue: #005ca2;
+  --utmach-blue-light: #1a6eaf;
+  --utmach-blue-dark: #004a82;
+  --utmach-blue-10: rgba(0, 92, 162, 0.1);
+  --utmach-blue-20: rgba(0, 92, 162, 0.2);
+
+  --utmach-sky: #53aae1;
+  --utmach-sky-light: #6eb8e6;
+  --utmach-sky-dark: #2d9ad9;
+  --utmach-sky-10: rgba(83, 170, 225, 0.1);
+  --utmach-sky-20: rgba(83, 170, 225, 0.2);
+
+  --utmach-red: #C2354a;
+  --utmach-red-light: #cc4a5d;
+  --utmach-red-dark: #9b2b3b;
+  --utmach-red-10: rgba(194, 53, 74, 0.1);
+  --utmach-red-20: rgba(194, 53, 74, 0.2);
+
+  --utmach-font: 'Roboto', sans-serif;
+}
+
+/* Typography utilities */
+.font-roboto {
+  font-family: var(--utmach-font);
+}
+
+/* Apply Roboto font and dark mode base styling globally */
+@layer base {
+  html {
+    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100;
+  }
+  body {
+    font-family: 'Roboto', sans-serif;
+    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200;
+    min-height: 100vh;
+  }
+}
+
+/* Dark mode form controls & native dropdown options */
+.dark select {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+.dark option {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+.dark input[type="text"],
+.dark input[type="number"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark textarea {
+  background-color: #1e293b;
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+/* Dark mode transitions */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for dark mode */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Modern Toast Styles - Override ngx-toastr defaults */
+.toast-container {
+  pointer-events: none !important;
+}
+
+.toast-container .ngx-toastr {
+  pointer-events: auto !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 16px 48px 16px 20px !important;
+  margin: 8px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  min-height: 48px !important;
+  backdrop-filter: blur(10px);
+  width: auto !important;
+  min-width: 300px !important;
+  max-width: 500px !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  position: relative !important;
+}
+
+/* Success Toast */
+.toast-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
+}
+
+.toast-success .toast-title {
+  font-weight: 600 !important;
+  color: white !important;
+  font-size: 15px !important;
+  display: block !important;
+  margin-bottom: 2px !important;
+}
+
+.toast-success .toast-message {
+  color: rgba(255, 255, 255, 0.95) !important;
+  display: block !important;
+  word-break: break-word !important;
+  white-space: pre-wrap !important;
+}
+
+/* Error Toast */
+.toast-error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: white !important;
+}
+
+.toast-error .toast-title {
+  font-weight: 600 !important;
+  color: white !important;
+  font-size: 15px !important;
+  display: block !important;
+  margin-bottom: 2px !important;
+}
+
+.toast-error .toast-message {
+  color: rgba(255, 255, 255, 0.95) !important;
+  display: block !important;
+  word-break: break-word !important;
+  white-space: pre-wrap !important;
+}
+
+/* Warning Toast */
+.toast-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: white !important;
+}
+
+.toast-warning .toast-title {
+  font-weight: 600 !important;
+  color: white !important;
+  font-size: 15px !important;
+  display: block !important;
+  margin-bottom: 2px !important;
+}
+
+.toast-warning .toast-message {
+  color: rgba(255, 255, 255, 0.95) !important;
+  display: block !important;
+  word-break: break-word !important;
+  white-space: pre-wrap !important;
+}
+
+/* Info Toast - Azul institucional UTMACH (Pantone 301 EC) */
+.toast-info {
+  background: linear-gradient(135deg, var(--utmach-blue) 0%, var(--utmach-blue-dark) 100%) !important;
+  color: white !important;
+}
+
+.toast-info .toast-title {
+  font-weight: 600 !important;
+  color: white !important;
+  font-size: 15px !important;
+  display: block !important;
+  margin-bottom: 2px !important;
+}
+
+.toast-info .toast-message {
+  color: rgba(255, 255, 255, 0.95) !important;
+  display: block !important;
+  word-break: break-word !important;
+  white-space: pre-wrap !important;
+}
+
+/* Close button - Fixed positioning */
+.toast-close-button {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 20px !important;
+  font-weight: 300 !important;
+  transition: color 0.2s ease !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+}
+
+.toast-close-button:hover {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Progress bar */
+.toast-progress {
+  height: 3px !important;
+  border-radius: 0 0 12px 12px !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Icon styling */
+.ngx-toastr .toast-icon {
+  font-size: 20px !important;
+  margin-right: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Toast content wrapper */
+.ngx-toastr>div {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+/* Dark mode toast adjustments */
+.dark .toast-container .ngx-toastr {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .toast-container {
+    padding: 8px !important;
+  }
+
+  .toast-container .ngx-toastr {
+    margin: 4px !important;
+    padding: 14px 40px 14px 16px !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+}
+
+/* =====================================================
+   ESTILOS COMPONENTES BI UTMACH - DESIGN SYSTEM
+   ===================================================== */
+
+/* Global Dark Mode Overrides for Sub-Layout Structure */
+.dark .sidebar {
+  background-color: #0f172a !important;
+  border-right-color: rgba(30, 41, 59, 1) !important;
+}
+
+.dark .topbar {
+  background-color: #0f172a !important;
+  border-bottom-color: rgba(30, 41, 59, 1) !important;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark .sidebar-footer {
+  background-color: #0f172a !important;
+  border-top-color: rgba(30, 41, 59, 1) !important;
+}
+
+/* Modern Cards */
+.utmach-card {
+  background-color: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.dark .utmach-card {
+  background-color: #1e293b;
+  border-color: rgba(51, 65, 85, 0.8);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
+}
+
+.utmach-card:hover {
+  box-shadow: 0 8px 25px -3px rgba(0, 0, 0, 0.08);
+}
+
+/* KPI Icon Containers */
+.utmach-kpi-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.utmach-kpi-icon-blue {
+  background-color: rgba(0, 92, 162, 0.12);
+  color: #005ca2;
+}
+
+.utmach-kpi-icon-sky {
+  background-color: rgba(83, 170, 225, 0.15);
+  color: #2d9ad9;
+}
+
+.utmach-kpi-icon-red {
+  background-color: rgba(194, 53, 74, 0.12);
+  color: #C2354a;
+}
+
+/* Typography scale for BI metrics */
+.utmach-metric-val {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.75rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.utmach-metric-lbl {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dark .utmach-metric-lbl {
+  color: #94a3b8;
+}
+
+/* Buttons */
+.btn-utmach-primary {
+  background-color: var(--utmach-blue);
+  color: #ffffff;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0.625rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 92, 162, 0.2);
+  cursor: pointer;
+}
+
+.btn-utmach-primary:hover {
+  background-color: var(--utmach-blue-dark);
+  box-shadow: 0 6px 16px rgba(0, 92, 162, 0.3);
+}
+
+.btn-utmach-secondary {
+  background-color: #f1f5f9;
+  color: #334155;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0.625rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dark .btn-utmach-secondary {
+  background-color: #334155;
+  color: #f8fafc;
+}
+
+.btn-utmach-secondary:hover {
+  background-color: #e2e8f0;
+}
+
+.dark .btn-utmach-secondary:hover {
+  background-color: #475569;
+}
+
+/* Tab active/inactive states */
+.utmach-tab-active {
+  background-color: #005ca2;
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.utmach-tab-inactive {
+  color: #475569;
+  background-color: transparent;
+}
+
+.dark .utmach-tab-inactive {
+  color: #94a3b8;
+}
+
+.utmach-tab-inactive:hover {
+  color: #005ca2;
+  background-color: rgba(0, 92, 162, 0.06);
+}

@@ -1,0 +1,127 @@
+<div class="space-y-6">
+  <div class="flex items-center space-x-3">
+    <lucide-icon [img]="BarChart3" class="w-6 h-6 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+    <div>
+      <h2 class="text-xl font-bold text-gray-900 dark:text-white">Generar Gráficos con IA</h2>
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        Describe el gráfico que deseas ver y la IA lo generará automáticamente basado en datos reales de admisiones
+      </p>
+    </div>
+  </div>
+
+  @if (!chartConfig() && !isGenerating()) {
+    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">¿Qué gráfico deseas generar?</h3>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+        Describe en lenguaje natural el tipo de análisis o gráfico que necesitas.
+        La IA consultará los datos reales de admisiones y generará tanto el análisis como la visualización.
+      </p>
+
+      <div class="mb-4">
+        <textarea
+          [(ngModel)]="prompt"
+          rows="3"
+          placeholder="Ej: Muestra el top 10 de instituciones con mayor puntaje promedio en orden descendente"
+          class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"></textarea>
+      </div>
+
+      <div class="mb-6">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Sugerencias rápidas:</p>
+        <div class="flex flex-wrap gap-2">
+          @for (suggestion of promptSuggestions; track suggestion) {
+            <button
+              (click)="selectSuggestion(suggestion)"
+              class="px-3 py-1.5 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-gray-600 dark:text-gray-400 hover:bg-utmach-blue-50 hover:border-utmach-blue-300 hover:text-utmach-blue dark:hover:bg-utmach-blue-900/20 dark:hover:border-utmach-blue-700 dark:hover:text-utmach-sky transition-colors">
+              {{ suggestion }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <button
+        (click)="generate()"
+        [disabled]="isGenerating() || !prompt().trim()"
+        class="px-6 py-2 bg-utmach-blue text-white rounded-lg font-medium hover:bg-utmach-blue-700 transition-colors duration-200 flex items-center space-x-2 disabled:opacity-50">
+        @if (isGenerating()) {
+          <lucide-icon [img]="Loader2" class="w-4 h-4 animate-spin"></lucide-icon>
+          <span>Generando...</span>
+        } @else {
+          <lucide-icon [img]="Send" class="w-4 h-4"></lucide-icon>
+          <span>Generar Gráfico</span>
+        }
+      </button>
+    </div>
+  }
+
+  @if (isGenerating()) {
+    <app-ai-loader
+      [messages]="['Consultando datos de admisiones...', 'Analizando información...', 'Generando visualización...', 'Creando gráfico...']"
+      title="Generando Gráfico con IA">
+    </app-ai-loader>
+  }
+
+  @if (errorMessage() && !isGenerating()) {
+    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start space-x-3">
+      <lucide-icon [img]="Sparkles" class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5"></lucide-icon>
+      <div>
+        <h4 class="font-semibold text-red-800 dark:text-red-200 mb-1">Error al generar</h4>
+        <p class="text-sm text-red-700 dark:text-red-300">{{ errorMessage() }}</p>
+        <button (click)="reset()" class="mt-2 text-sm text-red-600 dark:text-red-400 underline hover:no-underline">Intentar de nuevo</button>
+      </div>
+    </div>
+  }
+
+  @if (chartConfig() && !isGenerating()) {
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-2">
+          <lucide-icon [img]="BarChart3" class="w-5 h-5 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ getChartType() }} - {{ getChartTitle() }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ chartConfig()!.data.labels.length }} elementos</p>
+          </div>
+        </div>
+        <button (click)="reset()" class="text-gray-400 hover:text-red-500 transition-colors" title="Limpiar">
+          <lucide-icon [img]="Trash2" class="w-4 h-4"></lucide-icon>
+        </button>
+      </div>
+
+      @if (chartData()) {
+        <div class="mb-6 relative w-full h-[380px]">
+          <canvas baseChart
+            [type]="chartConfig()!.type"
+            [data]="chartData()!"
+            [options]="chartOptions() || {}">
+          </canvas>
+        </div>
+      } @else {
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
+          <p class="text-sm text-yellow-700 dark:text-yellow-300">La configuración del gráfico no está disponible. El análisis textual se muestra a continuación.</p>
+        </div>
+      }
+
+      @if (analysisText()) {
+        <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+          <div class="flex items-center space-x-2 mb-3">
+            <lucide-icon [img]="Lightbulb" class="w-4 h-4 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+            <h4 class="font-semibold text-gray-900 dark:text-white">Análisis</h4>
+          </div>
+          <div class="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 markdown-content"
+               [innerHTML]="analysisText() | markdown"></div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<style>
+  .markdown-content h1 { font-size: 1.5rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; }
+  .markdown-content h2 { font-size: 1.25rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; }
+  .markdown-content h3 { font-size: 1.125rem; font-weight: bold; margin-top: 0.75rem; margin-bottom: 0.5rem; }
+  .markdown-content p { margin-bottom: 0.75rem; line-height: 1.75; }
+  .markdown-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.75rem; }
+  .markdown-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.75rem; }
+  .markdown-content li { margin-bottom: 0.25rem; }
+  .markdown-content strong { font-weight: bold; }
+  .markdown-content em { font-style: italic; }
+</style>

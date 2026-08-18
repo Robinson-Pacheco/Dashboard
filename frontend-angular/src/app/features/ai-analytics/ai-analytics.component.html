@@ -1,0 +1,109 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center space-x-3">
+        <lucide-icon [img]="Brain" class="w-8 h-8 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Análisis con Inteligencia Artificial</h1>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Genera insights y predicciones utilizando IA</p>
+        </div>
+      </div>
+
+      <!-- Provider Status Badge -->
+      @if (providerStatus()) {
+        <div [class]="getProviderStatusClass() + ' px-4 py-2 rounded-full flex items-center space-x-2 text-sm font-medium'">
+          <span>{{ getProviderStatusIcon() }}</span>
+          <span>{{ providerStatus()?.status === 'connected' ? 'Conectado' : 'Desconectado' }}</span>
+          <span class="text-xs opacity-75">via {{ providerStatus()?.provider }}</span>
+        </div>
+      } @else {
+        <div class="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 px-4 py-2 rounded-full flex items-center space-x-2 text-sm font-medium">
+          <span class="animate-pulse">Verificando...</span>
+        </div>
+      }
+    </div>
+
+    @if (providerStatus()?.status === 'connected') {
+      <div class="bg-utmach-blue-50 dark:bg-purple-900/20 border border-utmach-blue-200 dark:border-utmach-blue-800 rounded-lg p-4">
+        <div class="flex items-start space-x-3">
+          <lucide-icon [img]="Sparkles" class="w-5 h-5 text-utmach-blue dark:text-utmach-sky flex-shrink-0 mt-0.5"></lucide-icon>
+          <div>
+            <h3 class="font-semibold text-utmach-blue dark:text-utmach-sky">IA Activa y Lista</h3>
+            <p class="text-sm text-utmach-blue dark:text-utmach-sky mt-1">
+              El servicio de IA está conectado y funcionando correctamente.
+              @if (providerStatus()?.availableModels && providerStatus()!.availableModels!.length > 0) {
+                <span class="block mt-2 text-xs">
+                  Modelos disponibles: {{ providerStatus()?.availableModels?.join(', ') }}
+                </span>
+              }
+            </p>
+          </div>
+        </div>
+      </div>
+    } @else if (providerStatus()?.status === 'disconnected') {
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div class="flex items-start space-x-3">
+          <lucide-icon [img]="Brain" class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5"></lucide-icon>
+          <div>
+            <h3 class="font-semibold text-red-900 dark:text-red-100">Servicio de IA No Disponible</h3>
+            <p class="text-sm text-red-700 dark:text-red-300 mt-1">
+              {{ providerStatus()?.message || 'No se puede conectar con el servicio de IA. Verifica la configuración del backend.' }}
+            </p>
+            <div class="mt-3 text-xs text-red-600 dark:text-red-400">
+              <p class="font-medium mb-1">Posibles soluciones:</p>
+              <ul class="list-disc list-inside space-y-1">
+                <li>Verifica que Ollama esté ejecutándose (si usas Ollama local)</li>
+                <li>Verifica que la API key de OpenRouter sea válida (si usas OpenRouter)</li>
+                <li>Revisa la configuración en el archivo .env del backend</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Navigation Tabs -->
+    <nav class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
+      <div class="flex space-x-1 overflow-x-auto">
+        <a
+          routerLink="./quartiles"
+          routerLinkActive="bg-utmach-blue-100 text-utmach-blue dark:bg-utmach-blue-900 dark:text-utmach-sky"
+          class="px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors duration-200 text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 cursor-pointer">
+          Análisis de Cuartiles
+        </a>
+        <a
+          routerLink="./predictions"
+          routerLinkActive="bg-utmach-blue-100 text-utmach-blue dark:bg-utmach-blue-900 dark:text-utmach-sky"
+          class="px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors duration-200 text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 cursor-pointer">
+          Predicciones
+        </a>
+        <a
+          routerLink="./outliers"
+          routerLinkActive="bg-utmach-blue-100 text-utmach-blue dark:bg-utmach-blue-900 dark:text-utmach-sky"
+          class="px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors duration-200 text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 cursor-pointer">
+          Análisis de Outliers
+        </a>
+        <a
+          routerLink="./charts"
+          routerLinkActive="bg-utmach-blue-100 text-utmach-blue dark:bg-utmach-blue-900 dark:text-utmach-sky"
+          class="px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors duration-200 text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 cursor-pointer">
+          Gráficos con IA
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Router Outlet for Child Components -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    @if (!isProviderConnected()) {
+      <div class="text-center py-12">
+        <lucide-icon [img]="Brain" class="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4"></lucide-icon>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Servicio de IA No Disponible</h3>
+        <p class="text-gray-600 dark:text-gray-400">Conecta el servicio de IA para utilizar las funcionalidades de análisis</p>
+      </div>
+    } @else {
+      <router-outlet></router-outlet>
+    }
+  </div>
+</div>

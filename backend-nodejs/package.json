@@ -1,0 +1,32 @@
+{
+  "name": "app-inteligencia-negocios-admisiones",
+  "version": "1.0.0",
+  "description": "Business Intelligence Application for University Admission Data",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "seed": "node src/scripts/seedUsers.js",
+    "export-docs": "node src/scripts/exportSwaggerLocal.js",
+    "export-docs:server": "node src/scripts/exportSwaggerDocs.js",
+    "export-docs:custom": "node src/scripts/exportSwaggerDocs.js http://localhost:3000/api-docs/swagger.json ./docs"
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.10.0",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.0",
+    "multer": "^1.4.5-lts.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
+    "exceljs": "^4.4.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

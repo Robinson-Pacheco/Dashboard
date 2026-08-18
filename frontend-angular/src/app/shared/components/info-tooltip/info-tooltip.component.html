@@ -1,0 +1,15 @@
+<div class="group relative inline-block">
+  <button class="flex items-center justify-center w-5 h-5 transition-colors" [class]="iconColor">
+    <lucide-icon [name]="Info" class="w-4 h-4"></lucide-icon>
+  </button>
+
+  <div [class]="'absolute ' + positionClass + ' ' + widthClass + ' p-3 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'">
+    @if (title) {
+      <p class="font-semibold mb-1">{{ title }}</p>
+    }
+    @if (description) {
+      <p class="whitespace-normal">{{ description }}</p>
+    }
+    <div [class]="'absolute ' + arrowClass + ' w-2 h-2 bg-gray-900 dark:bg-gray-700 transform rotate-45 translate-y-1'"></div>
+  </div>
+</div>

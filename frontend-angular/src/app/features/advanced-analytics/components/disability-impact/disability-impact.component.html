@@ -1,0 +1,272 @@
+<div class="space-y-6">
+  <!-- Summary Card -->
+  <div class="bg-gradient-to-r from-utmach-blue-50 to-utmach-sky-50 dark:from-gray-800 dark:to-gray-700 shadow-md rounded-lg p-4 md:p-6">
+    <div class="flex items-start gap-4">
+      <div class="bg-utmach-blue-100 dark:bg-utmach-blue-900 p-3 rounded-lg">
+        <lucide-icon [name]="HeartHandshake" class="w-8 h-8 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Análisis de Impacto por Discapacidad</h3>
+        @if (summary()) {
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Con Discapacidad</p>
+              <p class="text-2xl font-bold text-utmach-sky dark:text-utmach-sky">{{ summary()!.totalWithDisability }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Sin Discapacidad</p>
+              <p class="text-2xl font-bold text-utmach-blue dark:text-utmach-sky">{{ summary()!.totalWithoutDisability }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">% Con Discapacidad</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ summary()!.percentageWithDisability | number:'1.2-2' }}%</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Brecha Promedio</p>
+              <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ summary()!.averageGap | number:'1.1-1' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Tipos Identificados</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ summary()!.disabilityTypes }}</p>
+            </div>
+          </div>
+          <div class="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg border-l-4 border-utmach-blue">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ summary()!.mainRecommendation }}
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Without Disability Card -->
+  @if (withoutDisability()) {
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="bg-utmach-blue-100 dark:bg-utmach-blue-900 p-2 rounded-lg">
+          <lucide-icon [name]="Award" class="w-6 h-6 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Estudiantes Sin Discapacidad (Línea Base)</h3>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-utmach-blue-50 dark:bg-utmach-blue-900/20 rounded-lg p-4">
+          <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Puntaje Promedio</p>
+          <p class="text-3xl font-bold text-utmach-blue dark:text-utmach-sky">{{ withoutDisability()!.avgScore | number:'1.2-2' }}</p>
+        </div>
+        <div class="bg-utmach-blue-50 dark:bg-utmach-blue-900/20 rounded-lg p-4">
+          <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Número de Estudiantes</p>
+          <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ withoutDisability()!.studentCount }}</p>
+        </div>
+        <div class="bg-utmach-blue-50 dark:bg-utmach-blue-900/20 rounded-lg p-4">
+          <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Tasa de Cupo</p>
+          <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ withoutDisability()!.quotaRate | number:'1.2-2' }}%</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Charts -->
+  @if (sortedDisabilityTypes().length > 0) {
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Gap Comparison Chart -->
+      <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Brecha de Rendimiento por Tipo de Discapacidad
+        </h3>
+        <div class="h-80">
+          <canvas baseChart
+            [data]="gapComparisonChartData()"
+            [options]="gapComparisonChartOptions()"
+            type="bar">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Performance Comparison Chart -->
+      <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Comparativa de Puntajes Promedio
+        </h3>
+        <div class="h-80">
+          <canvas baseChart
+            [data]="performanceChartData()"
+            [options]="performanceChartOptions()"
+            type="bar">
+          </canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Distribution Chart -->
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        Distribución de Estudiantes por Tipo de Discapacidad
+      </h3>
+      <div class="h-80">
+        <canvas baseChart
+          [data]="studentDistributionChartData()"
+          [options]="studentDistributionChartOptions()"
+          type="bar">
+        </canvas>
+      </div>
+    </div>
+  }
+
+  <!-- Disability Types Cards -->
+  @if (disabilityTypes().length === 0) {
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 text-center">
+      <p class="text-gray-500 dark:text-gray-400">No hay datos disponibles</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 gap-4">
+      @for (item of sortedDisabilityTypes(); track item.disabilityType; let i = $index) {
+        <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 md:p-6 border-l-4"
+             [class]="Math.abs(item.percentGap) >= 25 ? 'border-red-500' : Math.abs(item.percentGap) >= 15 ? 'border-orange-500' : Math.abs(item.percentGap) >= 5 ? 'border-yellow-500' : 'border-green-500'">
+          <div class="flex flex-col gap-4">
+            <div class="flex-1">
+              <div class="flex items-start gap-3 mb-3">
+                <div [class]="Math.abs(item.percentGap) >= 25 ? 'bg-red-100 dark:bg-red-900' : Math.abs(item.percentGap) >= 15 ? 'bg-orange-100 dark:bg-orange-900' : Math.abs(item.percentGap) >= 5 ? 'bg-yellow-100 dark:bg-yellow-900' : 'bg-green-100 dark:bg-green-900'" 
+                     class="p-2 rounded-lg flex-shrink-0">
+                  <lucide-icon [name]="HeartHandshake" 
+                    [class]="Math.abs(item.percentGap) >= 25 ? 'text-red-600 dark:text-red-300' : Math.abs(item.percentGap) >= 15 ? 'text-orange-600 dark:text-orange-300' : Math.abs(item.percentGap) >= 5 ? 'text-yellow-600 dark:text-yellow-300' : 'text-green-600 dark:text-green-300'" 
+                    class="w-5 h-5">
+                  </lucide-icon>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
+                    Discapacidad {{ item.disabilityType }}
+                  </h4>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <!-- Performance Classification Badge -->
+                    <div class="group relative inline-flex items-center">
+                      <span [class]="getPerformanceClass(item.performanceClassification)"
+                            class="px-2 py-1 text-xs font-semibold rounded-full border flex items-center gap-1">
+                        @if (item.performanceClassification === 'Mejor desempeño') {
+                          <lucide-icon [name]="TrendingUp" [class]="getPerformanceIconClass(item.performanceClassification)" class="w-3 h-3"></lucide-icon>
+                        } @else if (item.performanceClassification === 'Peor desempeño') {
+                          <lucide-icon [name]="TrendingDown" [class]="getPerformanceIconClass(item.performanceClassification)" class="w-3 h-3"></lucide-icon>
+                        }
+                        {{ item.performanceClassification }}
+                      </span>
+                      <!-- Info Tooltip -->
+                      <div class="absolute left-0 top-full mt-2 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                        <p class="font-semibold mb-1">Clasificación de Rendimiento</p>
+                        <ul class="space-y-1 text-gray-300">
+                          <li>• <strong>Mejor desempeño:</strong> Grupo ≥5% sobre promedio sin discapacidad</li>
+                          <li>• <strong>Similar:</strong> Diferencia menor a ±5%</li>
+                          <li>• <strong>Peor desempeño:</strong> Grupo ≥5% bajo promedio sin discapacidad</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <span [class]="getGapSeverityClass(item.percentGap)" class="px-2 py-1 text-xs font-semibold rounded-full">
+                      Severidad: {{ getGapSeverityText(item.percentGap) }}
+                    </span>
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                      {{ item.studentCount }} Estudiante{{ item.studentCount !== 1 ? 's' : '' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Gap Info -->
+              <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Brecha (puntos)</p>
+                    <div class="flex items-center justify-center gap-1 mt-1">
+                      <lucide-icon [name]="item.gapVsNoDisability > 0 ? TrendingDown : TrendingUp" 
+                        [class]="item.gapVsNoDisability > 0 ? 'text-red-500' : 'text-green-500'" 
+                        class="w-4 h-4">
+                      </lucide-icon>
+                      <p class="text-lg font-bold text-gray-900 dark:text-white">{{ item.gapVsNoDisability | number:'1.2-2' }}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">% Brecha</p>
+                    <p class="text-lg font-bold text-gray-900 dark:text-white">{{ item.percentGap | number:'1.2-2' }}%</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Puntaje Promedio</p>
+                    <p class="text-lg font-bold text-utmach-sky dark:text-utmach-sky">{{ item.avgScore | number:'1.2-2' }}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Tasa de Cupo</p>
+                    <p class="text-lg font-bold text-green-600 dark:text-green-400">{{ item.quotaRate }}%</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Statistics Grid -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Puntaje Mínimo</p>
+                  <p class="text-xl font-bold text-gray-900 dark:text-white">{{ item.minScore }}</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Puntaje Máximo</p>
+                  <p class="text-xl font-bold text-gray-900 dark:text-white">{{ item.maxScore }}</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Desv. Estándar</p>
+                  <p class="text-xl font-bold text-gray-900 dark:text-white">{{ item.stdDev | number:'1.2-2' }}</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Total Estudiantes</p>
+                  <p class="text-xl font-bold text-gray-900 dark:text-white">{{ item.studentCount }}</p>
+                </div>
+              </div>
+
+              <!-- Performance Comparison Visual Bar -->
+              <app-baseline-comparison-bar
+                [currentValue]="item.avgScore"
+                [baselineValue]="withoutDisability()?.avgScore || 0"
+                [minValue]="item.minScore"
+                [maxValue]="item.maxScore"
+                [label]="'Comparación con Línea Base (Sin Discapacidad: ' + (withoutDisability()?.avgScore | number:'1.0-0') + ')'"
+                [baselineLabel]="'Sin Discapacidad'"
+                [currentLabel]="'Discapacidad ' + item.disabilityType">
+              </app-baseline-comparison-bar>
+            </div>
+          </div>
+
+          <!-- Recommendations -->
+          @if (item.recommendations && item.recommendations.length > 0) {
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                (click)="toggleRecommendations(i)"
+                class="flex items-center justify-between w-full text-left"
+              >
+                <div class="flex items-center">
+                  <lucide-icon [name]="AlertTriangle" class="w-5 h-5 text-orange-500 mr-2"></lucide-icon>
+                  <span class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ item.recommendations.length }} Recomendación{{ item.recommendations.length > 1 ? 'es' : '' }}
+                  </span>
+                </div>
+                <lucide-icon [name]="isRecommendationExpanded(i) ? ChevronUp : ChevronDown" class="w-5 h-5 text-gray-500"></lucide-icon>
+              </button>
+
+              @if (isRecommendationExpanded(i)) {
+                <div class="mt-3 space-y-2">
+                  @for (rec of item.recommendations; track rec.message) {
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                      <div class="flex flex-col sm:flex-row sm:items-start gap-2">
+                        <span [class]="getPriorityClass(rec.priority)" class="inline-block px-2 py-1 text-xs font-semibold rounded-full self-start">
+                          {{ rec.priority }}
+                        </span>
+                        <div class="flex-1">
+                          <p class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ rec.type }}</p>
+                          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ rec.message }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

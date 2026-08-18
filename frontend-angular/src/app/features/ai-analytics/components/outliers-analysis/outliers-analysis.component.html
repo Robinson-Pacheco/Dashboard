@@ -1,0 +1,221 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center space-x-3">
+    <lucide-icon [img]="AlertTriangle" class="w-6 h-6 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
+    <div>
+      <h2 class="text-xl font-bold text-gray-900 dark:text-white">Análisis de Outliers con IA</h2>
+      <p class="text-sm text-gray-600 dark:text-gray-400">Analiza estudiantes con puntajes atípicos usando datos reales</p>
+    </div>
+  </div>
+
+  <!-- Loading Initial Data -->
+  @if (isLoadingData()) {
+    <app-ai-loader [messages]="['Conectando con la API...', 'Obteniendo períodos disponibles...', 'Cargando componentes...']" title="Cargando Datos"></app-ai-loader>
+  }
+
+  <!-- Configuration Form -->
+  @if (!isLoading() && !streamedAnalysis() && hasFormData()) {
+    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Seleccionar Parámetros de Análisis</h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- Period -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Periodo
+          </label>
+          <select
+            [(ngModel)]="periodValue"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+            @for (period of availablePeriods(); track period) {
+              <option [value]="period">{{ period }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Year -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Año
+          </label>
+          <select
+            [(ngModel)]="yearValue"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+            @for (year of availableYears(); track year) {
+              <option [value]="year">{{ year }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Component -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Componente
+          </label>
+          <select
+            [(ngModel)]="componentValue"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+            @for (comp of availableComponents(); track comp) {
+              <option [value]="comp">{{ comp }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Statistics Preview (if we have data) -->
+      @if (distributionData()) {
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 mb-6 border border-gray-200 dark:border-gray-700">
+          <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Estadísticas del Periodo</h4>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Media</span>
+              <p class="font-semibold text-gray-900 dark:text-white">{{ getMean().toFixed(2) }}</p>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Desv. Est.</span>
+              <p class="font-semibold text-gray-900 dark:text-white">{{ getStandardDeviation().toFixed(2) }}</p>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Outliers IQR</span>
+              <p class="font-semibold text-gray-900 dark:text-white">{{ outliers().length }}</p>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Atípicos (±2σ)</span>
+              <p class="font-semibold text-gray-900 dark:text-white">{{ atypicalScores().length }}</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="flex space-x-3">
+        <button
+          (click)="analyze()"
+          [disabled]="isLoadingAI()"
+          class="px-6 py-2 bg-utmach-blue text-white rounded-lg font-medium hover:bg-utmach-blue-700 transition-colors duration-200 flex items-center space-x-2 disabled:opacity-50">
+          @if (isLoadingAI()) {
+            <lucide-icon [img]="Loader2" class="w-4 h-4 animate-spin"></lucide-icon>
+            <span>Analizando...</span>
+          } @else {
+            <lucide-icon [img]="Sparkles" class="w-4 h-4"></lucide-icon>
+            <span>Generar Análisis con IA</span>
+          }
+        </button>
+        <button
+          (click)="reset()"
+          [disabled]="isLoading()"
+          class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200">
+          Restablecer
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State for AI Analysis -->
+  @if (isLoadingAI()) {
+    <app-ai-loader [messages]="loadingMessages" title="Generando Análisis con IA"></app-ai-loader>
+  }
+
+  <!-- Analysis Results with Streaming -->
+  @if (isStreamingComplete()) {
+    <div class="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg p-6 border border-orange-200 dark:border-orange-800">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center space-x-3">
+          <lucide-icon [img]="AlertTriangle" class="w-6 h-6 text-orange-600 dark:text-orange-400"></lucide-icon>
+          <div>
+            <h3 class="text-lg font-semibold text-orange-900 dark:text-orange-100">Análisis de Outliers con IA</h3>
+            <p class="text-sm text-orange-700 dark:text-orange-300">{{ componentValue }} - Periodo {{ periodValue }}-{{ yearValue }}</p>
+          </div>
+        </div>
+        @if (getTotalOutliers() > 0) {
+          <div class="bg-orange-100 dark:bg-orange-900 px-4 py-2 rounded-full">
+            <span class="text-sm font-medium text-orange-800 dark:text-orange-200">{{ getTotalOutliers() }} outliers detectados</span>
+          </div>
+        }
+      </div>
+
+      <!-- Outliers Detected Table -->
+      @if (outliers().length > 0 || atypicalScores().length > 0) {
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4 border border-gray-200 dark:border-gray-700">
+          <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Outliers Detectados ({{ getOutlierType() }})</h4>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-100 dark:bg-gray-700">
+                <tr>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Estudiante</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Puntaje</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Z-Score</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Desviación</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                @for (outlier of outliers(); track outlier.studentId) {
+                  <tr [class]="getZScoreBackground(outlier.zScore)">
+                    <td class="px-3 py-2 text-sm text-gray-900 dark:text-white">{{ outlier.studentName }}</td>
+                    <td class="px-3 py-2 text-sm text-gray-900 dark:text-white">{{ outlier.score }}</td>
+                    <td class="px-3 py-2 text-sm" [class]="getZScoreClass(outlier.zScore)">{{ outlier.zScore.toFixed(2) }}</td>
+                    <td class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">{{ outlier.deviationFromMean.toFixed(2) }}</td>
+                  </tr>
+                }
+                @for (atypical of atypicalScores(); track atypical.studentId) {
+                  <tr [class]="getZScoreBackground(atypical.zScore)">
+                    <td class="px-3 py-2 text-sm text-gray-900 dark:text-white">{{ atypical.studentName }}</td>
+                    <td class="px-3 py-2 text-sm text-gray-900 dark:text-white">{{ atypical.score }}</td>
+                    <td class="px-3 py-2 text-sm" [class]="getZScoreClass(atypical.zScore)">{{ atypical.zScore.toFixed(2) }}</td>
+                    <td class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">{{ atypical.deviationFromMean.toFixed(2) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- Analysis Content with Markdown Streaming -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 mb-4 min-h-[200px]">
+        <div class="prose prose-orange dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 markdown-content"
+             [innerHTML]="streamedAnalysis() | markdown"></div>
+      </div>
+
+      <!-- Metadata -->
+      @if (getProviderInfo()) {
+        <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-3">
+          <span>{{ getProviderInfo() }}</span>
+          @if (getTokenUsage()) {
+            <span>{{ getTokenUsage() }}</span>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Info Box -->
+  @if (!analysisData() && !isLoading() && !streamedAnalysis() && hasFormData()) {
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-start space-x-3">
+      <lucide-icon [img]="AlertTriangle" class="w-5 h-5 text-utmach-blue dark:text-utmach-sky flex-shrink-0 mt-0.5"></lucide-icon>
+      <div>
+        <h4 class="font-semibold text-utmach-blue dark:text-utmach-sky mb-1">¿Cómo funciona?</h4>
+        <p class="text-sm text-utmach-blue dark:text-utmach-sky">
+          Selecciona un periodo, año y componente. El sistema cargará automáticamente los datos estadísticos reales de la base de datos
+          detectando outliers mediante el método IQR (rango intercuartílico) y puntajes atípicos (±2 desviaciones estándar),
+          luego generará un análisis detallado utilizando Inteligencia Artificial.
+        </p>
+      </div>
+    </div>
+  }
+</div>
+
+<style>
+  .markdown-content h1 { font-size: 1.5rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; }
+  .markdown-content h2 { font-size: 1.25rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; }
+  .markdown-content h3 { font-size: 1.125rem; font-weight: bold; margin-top: 0.75rem; margin-bottom: 0.5rem; }
+  .markdown-content p { margin-bottom: 0.75rem; line-height: 1.75; }
+  .markdown-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.75rem; }
+  .markdown-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.75rem; }
+  .markdown-content li { margin-bottom: 0.25rem; }
+  .markdown-content strong { font-weight: bold; }
+  .markdown-content em { font-style: italic; }
+  .markdown-content blockquote { border-left: 4px solid #f97316; padding-left: 1rem; margin: 1rem 0; color: #6b7280; }
+  .markdown-content code { background: rgba(249, 115, 22, 0.1); padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875rem; }
+  .markdown-content pre { background: rgba(249, 115, 22, 0.1); padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 1rem 0; }
+</style>
