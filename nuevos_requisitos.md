@@ -28,3 +28,5 @@ Implementar la distribución normal y la mediana en promedio (574.18) para segme
 - Brecha Significativa, Brecha Moderada y Equitativas clasificar comentar en icono **(i)** al pasar cursor el rango % debe desplegarse un cuadro de texto que explique los rangos porcentuales
 
 **Cada indicador gráfico debe incluir un icono de información (i) que, al pasar el cursor, despliegue una descripción clara de lo que se esta mostrando que se esta midiendo**
+
+**ds**
