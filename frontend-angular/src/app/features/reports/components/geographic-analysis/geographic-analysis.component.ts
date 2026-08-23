@@ -47,10 +47,11 @@ export class GeographicAnalysisComponent implements OnInit {
   readonly STORAGE_KEY = 'geographic_sampleSizeFilter';
 
   ngOnInit(): void {
-    // Restore filter from localStorage (solo el valor, sin recargar datos)
+    // Restore filter from localStorage and fetch filtered data if present
     const savedFilter = localStorage.getItem(this.STORAGE_KEY);
-    if (savedFilter !== null) {
+    if (savedFilter !== null && savedFilter !== '') {
       this.sampleSizeFilter.set(savedFilter);
+      this.parentComponent.reloadGeographic(savedFilter);
     }
   }
   expandedRecommendations = signal<Set<number>>(new Set());

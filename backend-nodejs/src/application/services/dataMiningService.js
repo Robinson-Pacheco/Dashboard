@@ -302,16 +302,15 @@ class DataMiningService {
         group.avgScoreFormatted = parseFloat(group.avgScore.toFixed(2));
       });
 
-      // Analyze risk concentration by sector (public vs private)
-      const publicSector = ['Fiscal', 'Municipal'];
-      const privateSector = ['Particular', 'Fiscomisional'];
+      const publicInstitutions = filteredStats.filter(inst => {
+        const type = (inst._id.type || '').toString().trim().toUpperCase();
+        return type === 'FISCAL' || type === 'MUNICIPAL';
+      });
 
-      const publicInstitutions = filteredStats.filter(inst =>
-        publicSector.includes(inst._id.type)
-      );
-      const privateInstitutions = filteredStats.filter(inst =>
-        privateSector.includes(inst._id.type)
-      );
+      const privateInstitutions = filteredStats.filter(inst => {
+        const type = (inst._id.type || '').toString().trim().toUpperCase();
+        return type === 'PARTICULAR' || type === 'FISCOMISIONAL';
+      });
 
       const publicAvg = publicInstitutions.length > 0
         ? publicInstitutions.reduce((sum, inst) => sum + inst.avgScore, 0) / publicInstitutions.length
@@ -324,15 +323,19 @@ class DataMiningService {
         public: {
           count: publicInstitutions.length,
           avgScore: parseFloat(publicAvg.toFixed(2)),
-          riskLevel: this._getSectorRiskLevel(publicAvg, overallAvg)
+          riskLevel: this._getSectorRiskLevel(publicAvg, overallAvg, publicInstitutions.length)
         },
         private: {
           count: privateInstitutions.length,
           avgScore: parseFloat(privateAvg.toFixed(2)),
-          riskLevel: this._getSectorRiskLevel(privateAvg, overallAvg)
+          riskLevel: this._getSectorRiskLevel(privateAvg, overallAvg, privateInstitutions.length)
         },
-        gap: parseFloat(Math.abs(publicAvg - privateAvg).toFixed(2)),
-        dominantSector: publicAvg < privateAvg ? 'Público' : (privateAvg < publicAvg ? 'Privado' : 'Equilibrado')
+        gap: (publicInstitutions.length === 0 || privateInstitutions.length === 0)
+          ? 0
+          : parseFloat(Math.abs(publicAvg - privateAvg).toFixed(2)),
+        dominantSector: (publicInstitutions.length === 0 && privateInstitutions.length === 0)
+          ? 'Sin datos'
+          : (publicAvg < privateAvg ? 'Público' : (privateAvg < publicAvg ? 'Privado' : 'Equilibrado'))
       };
 
       return {
@@ -791,7 +794,10 @@ class DataMiningService {
     return { level: 'Baja', color: 'success' };
   }
 
-  _getSectorRiskLevel(sectorAvg, overallAvg) {
+  _getSectorRiskLevel(sectorAvg, overallAvg, count = 1) {
+    if (!count || count === 0 || !overallAvg || overallAvg === 0) {
+      return 'Sin datos';
+    }
     const diff = overallAvg - sectorAvg;
     const percentage = (diff / overallAvg) * 100;
 

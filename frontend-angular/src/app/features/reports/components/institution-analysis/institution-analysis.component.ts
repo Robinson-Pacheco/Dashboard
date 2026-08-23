@@ -59,10 +59,11 @@ export class InstitutionAnalysisComponent implements OnInit {
   readonly STORAGE_KEY = 'institution_sampleSizeFilter';
 
   ngOnInit(): void {
-    // Restore filter from localStorage (solo el valor, sin recargar datos)
+    // Restore filter from localStorage and fetch filtered data if present
     const savedFilter = localStorage.getItem(this.STORAGE_KEY);
-    if (savedFilter !== null) {
+    if (savedFilter !== null && savedFilter !== '') {
       this.sampleSizeFilter.set(savedFilter);
+      this.parentComponent.reloadInstitutions(savedFilter);
     }
   }
   expandedRecommendations = signal<Set<number>>(new Set());
@@ -490,7 +491,8 @@ export class InstitutionAnalysisComponent implements OnInit {
     if (riskLevel === 'Rendimiento Superior') return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
     if (riskLevel === 'Riesgo Alto') return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
     if (riskLevel === 'Riesgo Medio') return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-    return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+    if (riskLevel === 'Riesgo Bajo') return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+    return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
   }
 
   // Get institution type color for charts

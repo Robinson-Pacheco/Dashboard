@@ -53,15 +53,18 @@
     </div>
   </div>
 
-  <!-- Loading State -->
-  @if (isLoading()) {
-    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-12">
-      <div class="flex justify-center items-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  <!-- Container with smooth loading overlay -->
+  <div class="relative min-h-[400px]">
+    @if (isLoading()) {
+      <div class="absolute inset-0 bg-white/70 dark:bg-slate-900/70 backdrop-blur-[1px] z-40 flex items-center justify-center rounded-xl transition-all min-h-[300px]">
+        <div class="flex flex-col items-center gap-3">
+          <div class="animate-spin rounded-full h-10 w-10 border-4 border-utmach-blue border-t-transparent"></div>
+          <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Cargando datos...</span>
+        </div>
       </div>
-    </div>
-  } @else {
+    }
+
     <!-- Router Outlet for Child Components -->
     <router-outlet />
-  }
+  </div>
 </div>
