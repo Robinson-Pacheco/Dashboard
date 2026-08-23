@@ -63,8 +63,8 @@
             </label>
             <div class="relative">
               <select
-                [value]="sampleSizeFilter()"
-                (change)="applySampleSizeFilter($any($event.target).value)"
+                [ngModel]="sampleSizeFilter()"
+                (ngModelChange)="applySampleSizeFilter($event)"
                 class="block w-full px-3 py-2 text-sm border border-utmach-blue-300 dark:border-utmach-blue-700 rounded-lg bg-white dark:bg-gray-800 text-utmach-blue dark:text-utmach-sky focus:ring-2 focus:ring-utmach-blue focus:border-transparent">
                 @for (option of sampleSizeOptions; track option.value) {
                   <option [value]="option.value">{{ option.label }}</option>
@@ -79,28 +79,8 @@
                 </button>
               }
             </div>
-            <!-- Indicador del valor seleccionado -->
-            <div class="mt-2 flex items-center gap-2">
-              <span class="text-xs text-gray-500 dark:text-gray-400">Seleccionado:</span>
-              @if (sampleSizeFilter()) {
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-utmach-blue-100 text-utmach-blue dark:bg-utmach-blue-900 dark:text-utmach-sky">
-                  {{ getSampleSizeLabel() }}
-                </span>
-              } @else {
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-                  Todos los tamaños
-                </span>
-              }
-            </div>
           </div>
         </div>
-
-        @if (hasFilterApplied()) {
-          <div class="mt-3 flex items-center gap-2 text-xs text-utmach-blue dark:text-utmach-sky">
-            <lucide-icon [name]="Info" class="w-4 h-4"></lucide-icon>
-            <span>Filtro activo: {{ getSampleSizeLabel() }}</span>
-          </div>
-        }
       </div>
     </div>
   </div>
