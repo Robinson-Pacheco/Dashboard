@@ -1,7 +1,7 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Box, TrendingUp, AlertTriangle, Sparkles, Loader2 } from 'lucide-angular';
+import { LucideAngularModule, Box, TrendingUp, AlertTriangle, Sparkles, Loader2, Filter } from 'lucide-angular';
 import { AIAnalysisService } from '../../services/ai-analysis.service';
 import { StatisticalDistributionService } from '../../../statistical-distribution/services/statistical-distribution.service';
 import { QuartilesAnalysisData, QuartilesStatistics } from '../../models/ai-analysis.models';
@@ -23,6 +23,7 @@ export class QuartilesAnalysisComponent implements OnInit {
   readonly AlertTriangle = AlertTriangle;
   readonly Sparkles = Sparkles;
   readonly Loader2 = Loader2;
+  readonly Filter = Filter;
 
   private aiAnalysisService = inject(AIAnalysisService);
   private statisticalService = inject(StatisticalDistributionService);

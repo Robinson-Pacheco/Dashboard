@@ -37,51 +37,46 @@
   </div>
 
   <!-- Filters Section - Applies to ALL data -->
-  <div class="bg-utmach-blue-50 dark:bg-utmach-blue-900/20 border border-utmach-blue-200 dark:border-utmach-blue-800 shadow-md rounded-lg p-4 md:p-6">
-    <div class="flex items-start gap-3">
-      <div class="bg-utmach-blue-100 dark:bg-utmach-blue-900 p-2 rounded-lg flex-shrink-0">
-        <lucide-icon [name]="Filter" class="w-5 h-5 text-utmach-blue dark:text-utmach-sky"></lucide-icon>
-      </div>
-      <div class="flex-1">
-        <div class="flex items-center gap-2 mb-3">
-          <h3 class="text-base font-semibold text-utmach-blue dark:text-utmach-sky">Filtros de Análisis</h3>
-          <span class="text-xs text-utmach-blue dark:text-utmach-sky bg-utmach-blue-100 dark:bg-utmach-blue-900 px-2 py-0.5 rounded-full">
+  <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md rounded-2xl p-5 md:p-6 transition-all duration-200">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-utmach-blue dark:text-utmach-sky shadow-inner">
+          <lucide-icon [name]="Filter" class="w-5 h-5"></lucide-icon>
+        </div>
+        <div class="flex items-center gap-2">
+          <h3 class="text-base md:text-lg font-bold text-slate-900 dark:text-white tracking-tight">Filtros de Análisis Geográfico</h3>
+          <span class="text-xs font-semibold text-utmach-blue dark:text-utmach-sky bg-utmach-blue-50 dark:bg-utmach-blue-900/40 px-2.5 py-0.5 rounded-full border border-utmach-blue-200/50 dark:border-utmach-blue-800/50">
             Aplican a todos los datos
           </span>
           @if (hasFilterApplied()) {
-            <span class="text-xs text-green-600 dark:text-green-300 bg-green-100 dark:bg-green-900 px-2 py-0.5 rounded-full">
+            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
               Activo
             </span>
           }
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Sample Size Filter -->
-          <div>
-            <label class="block text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
-              Tamaño de Muestra
-            </label>
-            <div class="relative">
-              <select
-                [ngModel]="sampleSizeFilter()"
-                (ngModelChange)="applySampleSizeFilter($event)"
-                class="block w-full px-3 py-2 text-sm border border-utmach-blue-300 dark:border-utmach-blue-700 rounded-lg bg-white dark:bg-gray-800 text-utmach-blue dark:text-utmach-sky focus:ring-2 focus:ring-utmach-blue focus:border-transparent">
-                @for (option of sampleSizeOptions; track option.value) {
-                  <option [value]="option.value">{{ option.label }}</option>
-                }
-              </select>
-              @if (sampleSizeFilter()) {
-                <button
-                  (click)="clearSampleSizeFilter()"
-                  class="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-utmach-blue dark:hover:text-utmach-sky transition-colors"
-                  title="Limpiar filtro">
-                  <lucide-icon [name]="X" class="w-4 h-4 text-utmach-sky"></lucide-icon>
-                </button>
-              }
-            </div>
-          </div>
-        </div>
       </div>
+      @if (sampleSizeFilter()) {
+        <button
+          (click)="clearSampleSizeFilter()"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 rounded-xl transition-all">
+          <lucide-icon [name]="X" class="w-3.5 h-3.5"></lucide-icon>
+          Limpiar filtro
+        </button>
+      }
+    </div>
+
+    <div class="max-w-md">
+      <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+        Tamaño de Muestra por Ubicación
+      </label>
+      <select
+        [ngModel]="sampleSizeFilter()"
+        (ngModelChange)="applySampleSizeFilter($event)"
+        class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-utmach-blue/30 focus:border-utmach-blue dark:focus:ring-utmach-sky/30 dark:focus:border-utmach-sky outline-none transition-all cursor-pointer hover:border-slate-300 dark:hover:border-slate-600">
+        @for (option of sampleSizeOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
     </div>
   </div>
 
