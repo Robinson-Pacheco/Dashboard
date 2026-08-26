@@ -640,11 +640,6 @@
             </span>
           </h2>
           @if (cuposTotales(); as tot) {
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-utmach-blue text-white text-xs font-black"><span class="h-2 w-2 rounded-full bg-white"></span> ♂ {{ tot.masculino | number }} ({{ tot.pctMasc }}%)</span>
-              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-utmach-red text-white text-xs font-black"><span class="h-2 w-2 rounded-full bg-white"></span> ♀ {{ tot.femenino | number }} ({{ tot.pctFem }}%)</span>
-              <span class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border">Total {{ tot.total | number }} cupos</span>
-            </div>
           }
         </div>
 
