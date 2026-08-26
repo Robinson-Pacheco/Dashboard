@@ -12,6 +12,8 @@ import {
   ExecutiveSummary,
   FilteredData,
   PeriodsYears,
+  CareersByGender,
+  CareerCuposByGender,
   BIResponse
 } from '../models/bi.model';
 
@@ -73,5 +75,19 @@ export class BIService {
     if (filters.tipoInstitucion) params = params.set('tipoInstitucion', filters.tipoInstitucion);
     if (filters.carrera) params = params.set('carrera', filters.carrera);
     return this.http.get<BIResponse<FilteredData>>(`${this.apiUrl}/filtered`, { params });
+  }
+
+  getCareersByGender(period?: string, year?: number): Observable<BIResponse<CareersByGender>> {
+    let params = new HttpParams();
+    if (period) params = params.set('period', period);
+    if (year) params = params.set('year', year.toString());
+    return this.http.get<BIResponse<CareersByGender>>(`${this.apiUrl}/careers-by-gender`, { params });
+  }
+
+  getCareerCuposByGender(period?: string, year?: number): Observable<BIResponse<CareerCuposByGender>> {
+    let params = new HttpParams();
+    if (period) params = params.set('period', period);
+    if (year) params = params.set('year', year.toString());
+    return this.http.get<BIResponse<CareerCuposByGender>>(`${this.apiUrl}/career-cupos-by-gender`, { params });
   }
 }

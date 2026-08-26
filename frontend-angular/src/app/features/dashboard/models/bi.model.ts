@@ -87,6 +87,69 @@ export interface PeriodsYears {
   years: number[];
 }
 
+export interface CareerGenderCount {
+  carrera: string;
+  sexo: string;
+  rawSexo: string;
+  count: number;
+  avgScore: number;
+  maxScore: number;
+  minScore: number;
+}
+
+export interface CareerGenderResumen {
+  carrera: string;
+  masculino: number;
+  femenino: number;
+  otros: number;
+  total: number;
+  pctMasculino: string;
+  pctFemenino: string;
+  dominante: 'MASCULINO' | 'FEMENINO' | 'PARIDAD';
+  brecha: number;
+  avgMasculino: number;
+  avgFemenino: number;
+  avgTotal: number;
+  maxMasculino: number;
+  maxFemenino: number;
+  minMasculino: number;
+  minFemenino: number;
+  diffAvg: number;
+}
+
+export interface CareerGenderTop {
+  carrera: string;
+  count: number;
+  pct: string;
+  avg: number;
+}
+
+export interface CareersByGender {
+  byCareerGender: CareerGenderCount[];
+  resumen: CareerGenderResumen[];
+  topMasculino: CareerGenderTop[];
+  topFemenino: CareerGenderTop[];
+  mostGendered: CareerGenderResumen[];
+}
+
+export interface CareerCupoResumen {
+  carrera: string;
+  masculino: number;
+  femenino: number;
+  otros: number;
+  total: number;
+  pctMasculino: string;
+  pctFemenino: string;
+  dominante: 'MASCULINO' | 'FEMENINO' | 'PARIDAD';
+  brecha: number;
+}
+
+export interface CareerCuposByGender {
+  byCareerGenderCupos: { carrera: string; sexo: string; rawSexo: string; cupos: number }[];
+  resumen: CareerCupoResumen[];
+  totales: { masculino: number; femenino: number; total: number; pctMasc: string; pctFem: string };
+}
+
 // Response interfaces
 export interface BIResponse<T> {
   success: boolean;

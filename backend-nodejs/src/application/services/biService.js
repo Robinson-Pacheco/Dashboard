@@ -673,7 +673,7 @@ class BIService {
         }
       },
       { $sort: { count: -1 } },
-      { $limit: 10 }
+      { $limit: 50 }
     ]).option({ maxTimeMS: timeouts.aggregation }).then(data =>
       data.filter(d => d._id && d._id !== 'Sin especificar').map(d => ({ carrera: d._id, postulantes: d.count }))
     );
@@ -718,6 +718,251 @@ class BIService {
     ]).option({ maxTimeMS: timeouts.aggregation }).then(data =>
       data.filter(d => d._id).map(d => ({ tipo: d._id, estudiantes: d.count }))
     );
+  }
+
+  /**
+   * Get careers breakdown by gender (hombres vs mujeres)
+   * @param {string} period - Academic period (optional)
+   * @param {number} year - Academic year (optional)
+   * @returns {Promise<Object>} Careers by gender data
+   */
+  async getCareersByGender(period, year) {
+    try {
+      const matchStage = {};
+      if (period) matchStage.period = period;
+      if (year) matchStage.year = parseInt(year);
+
+      const careerGenderStats = await AdmissionData.aggregate([
+        { $match: matchStage },
+        {
+          $addFields: {
+            sexoClean: { $toUpper: { $trim: { input: { $ifNull: ['$sexo', ''] } } } },
+            carreraClean: { $trim: { input: { $ifNull: ['$conCupoCarrera', ''] } } },
+            puntajeNumerico: {
+              $cond: [
+                { $or: [{ $eq: ['$puntaje_obtenido_componente', null] }, { $eq: ['$puntaje_obtenido_componente', ''] }] },
+                0,
+                { $toDouble: '$puntaje_obtenido_componente' }
+              ]
+            },
+            studentKey: {
+              $cond: [
+                { $and: [{ $ne: ['$usuario_id', null] }, { $ne: ['$usuario_id', ''] }] },
+                '$usuario_id',
+                { $ifNull: ['$studentId', { $toString: '$_id' }] }
+              ]
+            }
+          }
+        },
+        {
+          $match: {
+            carreraClean: { $nin: [null, '', 'Sin especificar', 'N/A', 'NO APLICA'] },
+            sexoClean: { $nin: ['', 'NO ESPECIFICADO', 'N/A', 'NULL', 'UNDEFINED'] }
+          }
+        },
+        {
+          $group: {
+            _id: { studentKey: '$studentKey', carrera: '$carreraClean', sexo: '$sexoClean' },
+            totalScore: { $sum: '$puntajeNumerico' }
+          }
+        },
+        {
+          $group: {
+            _id: { carrera: '$_id.carrera', sexo: '$_id.sexo' },
+            count: { $sum: 1 },
+            avgScore: { $avg: '$totalScore' },
+            maxScore: { $max: '$totalScore' },
+            minScore: { $min: '$totalScore' }
+          }
+        },
+        { $sort: { count: -1 } }
+      ]).option({ maxTimeMS: timeouts.aggregation });
+
+      // Normalize to canonical gender
+      const normalized = careerGenderStats.map(item => {
+        const raw = item._id.sexo;
+        let canon = raw;
+        if (['MASCULINO', 'HOMBRE', 'M', 'MASC', 'MASCULINA'].includes(raw)) canon = 'MASCULINO';
+        else if (['FEMENINO', 'MUJER', 'F', 'FEM', 'FEMENINA'].includes(raw)) canon = 'FEMENINO';
+        return { 
+          carrera: item._id.carrera, 
+          sexo: canon, 
+          rawSexo: raw, 
+          count: item.count,
+          avgScore: item.avgScore ? parseFloat(item.avgScore.toFixed(1)) : 0,
+          maxScore: item.maxScore ? parseFloat(item.maxScore.toFixed(1)) : 0,
+          minScore: item.minScore ? parseFloat(item.minScore.toFixed(1)) : 0
+        };
+      });
+
+      const carreraMap = {};
+      normalized.forEach(r => {
+        if (!carreraMap[r.carrera]) carreraMap[r.carrera] = { carrera: r.carrera, masculino: 0, femenino: 0, otros: 0, total: 0, sumScoreMasc: 0, sumScoreFem: 0, countMasc: 0, countFem: 0, maxMasc: 0, maxFem: 0, minMasc: 9999, minFem: 9999 };
+        if (r.sexo === 'MASCULINO') {
+          carreraMap[r.carrera].masculino += r.count;
+          carreraMap[r.carrera].sumScoreMasc += r.avgScore * r.count;
+          carreraMap[r.carrera].countMasc += r.count;
+          carreraMap[r.carrera].maxMasc = Math.max(carreraMap[r.carrera].maxMasc, r.maxScore);
+          carreraMap[r.carrera].minMasc = Math.min(carreraMap[r.carrera].minMasc, r.minScore);
+        } else if (r.sexo === 'FEMENINO') {
+          carreraMap[r.carrera].femenino += r.count;
+          carreraMap[r.carrera].sumScoreFem += r.avgScore * r.count;
+          carreraMap[r.carrera].countFem += r.count;
+          carreraMap[r.carrera].maxFem = Math.max(carreraMap[r.carrera].maxFem, r.maxScore);
+          carreraMap[r.carrera].minFem = Math.min(carreraMap[r.carrera].minFem, r.minScore);
+        } else {
+          carreraMap[r.carrera].otros += r.count;
+        }
+        carreraMap[r.carrera].total += r.count;
+      });
+
+      const resumen = Object.values(carreraMap)
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 12)
+        .map(c => {
+          const avgMasc = c.countMasc ? (c.sumScoreMasc / c.countMasc) : 0;
+          const avgFem = c.countFem ? (c.sumScoreFem / c.countFem) : 0;
+          const avgTotal = (c.sumScoreMasc + c.sumScoreFem) / (c.countMasc + c.countFem || 1);
+          return {
+            carrera: c.carrera,
+            masculino: c.masculino,
+            femenino: c.femenino,
+            otros: c.otros,
+            total: c.total,
+            pctMasculino: c.total ? ((c.masculino / c.total) * 100).toFixed(1) : '0.0',
+            pctFemenino: c.total ? ((c.femenino / c.total) * 100).toFixed(1) : '0.0',
+            dominante: c.masculino > c.femenino ? 'MASCULINO' : c.femenino > c.masculino ? 'FEMENINO' : 'PARIDAD',
+            brecha: Math.abs(c.masculino - c.femenino),
+            avgMasculino: parseFloat(avgMasc.toFixed(1)),
+            avgFemenino: parseFloat(avgFem.toFixed(1)),
+            avgTotal: parseFloat(avgTotal.toFixed(1)),
+            maxMasculino: c.maxMasc || 0,
+            maxFemenino: c.maxFem || 0,
+            minMasculino: c.minMasc === 9999 ? 0 : c.minMasc,
+            minFemenino: c.minFem === 9999 ? 0 : c.minFem,
+            diffAvg: parseFloat((avgMasc - avgFem).toFixed(1))
+          };
+        });
+
+      const topMasculino = Object.values(carreraMap)
+        .filter(c => c.masculino > 0)
+        .sort((a, b) => b.masculino - a.masculino)
+        .slice(0, 6)
+        .map(c => {
+          const avg = c.countMasc ? (c.sumScoreMasc / c.countMasc) : 0;
+          return { carrera: c.carrera, count: c.masculino, pct: c.total ? ((c.masculino / c.total) * 100).toFixed(1) : '0', avg: parseFloat(avg.toFixed(1)) };
+        });
+
+      const topFemenino = Object.values(carreraMap)
+        .filter(c => c.femenino > 0)
+        .sort((a, b) => b.femenino - a.femenino)
+        .slice(0, 6)
+        .map(c => {
+          const avg = c.countFem ? (c.sumScoreFem / c.countFem) : 0;
+          return { carrera: c.carrera, count: c.femenino, pct: c.total ? ((c.femenino / c.total) * 100).toFixed(1) : '0', avg: parseFloat(avg.toFixed(1)) };
+        });
+
+      // Find most gendered careers (highest brecha %)
+      const mostGendered = [...resumen]
+        .filter(r => r.total >= 5)
+        .sort((a, b) => Math.abs(parseFloat(b.pctMasculino) - 50) - Math.abs(parseFloat(a.pctMasculino) - 50))
+        .slice(0, 3);
+
+      return {
+        byCareerGender: normalized,
+        resumen,
+        topMasculino,
+        topFemenino,
+        mostGendered
+      };
+    } catch (error) {
+      throw new Error(`Error fetching careers by gender: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get cupos (admitidos) por carrera y género — quién obtuvo más cupos
+   */
+  async getCareerCuposByGender(period, year) {
+    try {
+      const matchStage = { conCupo: 'SI' };
+      if (period) matchStage.period = period;
+      if (year) matchStage.year = parseInt(year);
+
+      const cuposByGender = await AdmissionData.aggregate([
+        { $match: matchStage },
+        {
+          $addFields: {
+            sexoClean: { $toUpper: { $trim: { input: { $ifNull: ['$sexo', ''] } } } },
+            carreraClean: { $trim: { input: { $ifNull: ['$conCupoCarrera', ''] } } },
+            studentKey: {
+              $cond: [
+                { $and: [{ $ne: ['$usuario_id', null] }, { $ne: ['$usuario_id', ''] }] },
+                '$usuario_id',
+                { $ifNull: ['$studentId', { $toString: '$_id' }] }
+              ]
+            }
+          }
+        },
+        {
+          $match: {
+            carreraClean: { $nin: [null, '', 'Sin especificar', 'N/A', 'NO APLICA'] },
+            sexoClean: { $nin: ['', 'NO ESPECIFICADO', 'N/A', 'NULL', 'UNDEFINED'] }
+          }
+        },
+        {
+          $group: {
+            _id: { studentKey: '$studentKey', carrera: '$carreraClean', sexo: '$sexoClean' }
+          }
+        },
+        {
+          $group: {
+            _id: { carrera: '$_id.carrera', sexo: '$_id.sexo' },
+            cupos: { $sum: 1 }
+          }
+        },
+        { $sort: { cupos: -1 } }
+      ]).option({ maxTimeMS: timeouts.aggregation });
+
+      const normalized = cuposByGender.map(item => {
+        const raw = item._id.sexo;
+        let canon = raw;
+        if (['MASCULINO', 'HOMBRE', 'M', 'MASC', 'MASCULINA'].includes(raw)) canon = 'MASCULINO';
+        else if (['FEMENINO', 'MUJER', 'F', 'FEM', 'FEMENINA'].includes(raw)) canon = 'FEMENINO';
+        return { carrera: item._id.carrera, sexo: canon, rawSexo: raw, cupos: item.cupos };
+      });
+
+      const map = {};
+      normalized.forEach(r => {
+        if (!map[r.carrera]) map[r.carrera] = { carrera: r.carrera, masculino: 0, femenino: 0, otros: 0, total: 0 };
+        if (r.sexo === 'MASCULINO') map[r.carrera].masculino += r.cupos;
+        else if (r.sexo === 'FEMENINO') map[r.carrera].femenino += r.cupos;
+        else map[r.carrera].otros += r.cupos;
+        map[r.carrera].total += r.cupos;
+      });
+
+      const resumen = Object.values(map)
+        .sort((a, b) => b.total - a.total)
+        .map(c => ({
+          ...c,
+          pctMasculino: c.total ? ((c.masculino / c.total) * 100).toFixed(1) : '0.0',
+          pctFemenino: c.total ? ((c.femenino / c.total) * 100).toFixed(1) : '0.0',
+          dominante: c.masculino > c.femenino ? 'MASCULINO' : c.femenino > c.masculino ? 'FEMENINO' : 'PARIDAD',
+          brecha: Math.abs(c.masculino - c.femenino)
+        }));
+
+      const totalCuposMasc = Object.values(map).reduce((s, c) => s + c.masculino, 0);
+      const totalCuposFem = Object.values(map).reduce((s, c) => s + c.femenino, 0);
+      const totalCupos = totalCuposMasc + totalCuposFem;
+
+      return {
+        byCareerGenderCupos: normalized,
+        resumen,
+        totales: { masculino: totalCuposMasc, femenino: totalCuposFem, total: totalCupos, pctMasc: totalCupos ? ((totalCuposMasc / totalCupos) * 100).toFixed(1) : '0.0', pctFem: totalCupos ? ((totalCuposFem / totalCupos) * 100).toFixed(1) : '0.0' }
+      };
+    } catch (error) {
+      throw new Error(`Error fetching career cupos by gender: ${error.message}`);
+    }
   }
 }
 

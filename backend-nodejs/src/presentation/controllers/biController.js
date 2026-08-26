@@ -157,6 +157,29 @@ class BIController {
       next(error);
     }
   }
+
+  /**
+   * Get careers breakdown by gender
+   */
+  async getCareersByGender(req, res, next) {
+    try {
+      const { period, year } = req.query;
+      const data = await biService.getCareersByGender(period, year);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getCareerCuposByGender(req, res, next) {
+    try {
+      const { period, year } = req.query;
+      const data = await biService.getCareerCuposByGender(period, year);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new BIController();

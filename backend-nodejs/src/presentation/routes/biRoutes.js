@@ -222,4 +222,8 @@ router.get('/executive-summary', auth, biController.getExecutiveSummary);
 
 router.get('/filtered', auth, biController.getFilteredData);
 
+router.get('/careers-by-gender', auth, biController.getCareersByGender);
+
+router.get('/career-cupos-by-gender', auth, biController.getCareerCuposByGender);
+
 module.exports = router;
