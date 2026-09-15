@@ -202,10 +202,10 @@ export class InstitutionAnalysisComponent implements OnInit {
     return {
       autoSize: true,
       padding: {
-        top: 15,
-        right: 25,
-        bottom: 15,
-        left: 25
+        top: 10,
+        right: 20,
+        bottom: 10,
+        left: 20
       },
       data: data.map(inst => {
         const min = inst.minScore;
