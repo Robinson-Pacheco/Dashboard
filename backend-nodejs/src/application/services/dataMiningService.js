@@ -260,15 +260,21 @@ class DataMiningService {
 
       const recommendations = top50Institutions.map(inst => {
         const performanceLevel = this._getScorePerformanceLevel(inst.avgScore);
+        const sortedScores = (inst.allScores || []).slice().sort((a, b) => a - b);
+        const boxPlotStats = this._calculateBoxPlotStats(sortedScores);
 
         return {
           institution: inst._id.institution || 'Sin información',
           type: inst._id.type || 'No especificado',
           avgScore: parseFloat(inst.avgScore.toFixed(2)),
-          minScore: parseFloat(inst.minScore.toFixed(2)),
-          maxScore: parseFloat(inst.maxScore.toFixed(2)),
+          minScore: parseFloat(boxPlotStats.min.toFixed(2)),
+          q1: parseFloat(boxPlotStats.q1.toFixed(2)),
+          median: parseFloat(boxPlotStats.q2.toFixed(2)),
+          q3: parseFloat(boxPlotStats.q3.toFixed(2)),
+          maxScore: parseFloat(boxPlotStats.max.toFixed(2)),
           studentCount: inst.uniqueStudentCount || inst.studentCount,
           stdDev: parseFloat(inst.stdDev.toFixed(2)),
+          outliers: boxPlotStats.outliers || [],
           performanceLevel: performanceLevel.level,
           recommendations: this._generateInstitutionRecommendations(inst, overallAvg, performanceLevel, inst.uniqueStudentCount || inst.studentCount)
         };

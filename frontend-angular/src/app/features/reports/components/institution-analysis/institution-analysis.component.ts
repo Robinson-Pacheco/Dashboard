@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, AlertTriangle, ChevronDown, ChevronUp, Building, Search, X, ChevronLeft, ChevronRight, Users, TrendingDown, BarChart2, Eye, Info, Filter } from 'lucide-angular';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
+import { AgCharts } from 'ag-charts-angular';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DarkModeService } from '../../../../services/dark-mode';
 import { InstitutionAnalysisData, InstitutionAnalysisItem, InstitutionTypeGroup, SectorRiskAnalysis } from '../../models/data-mining.model';
@@ -14,7 +15,7 @@ import { ReportsComponent } from '../../reports.component';
 @Component({
   selector: 'app-institution-analysis',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, BaseChartDirective, BaselineComparisonBarComponent, InstitutionsDetailModalComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, BaseChartDirective, AgCharts, BaselineComparisonBarComponent, InstitutionsDetailModalComponent],
   templateUrl: './institution-analysis.component.html'
 })
 export class InstitutionAnalysisComponent implements OnInit {
@@ -166,6 +167,147 @@ export class InstitutionAnalysisComponent implements OnInit {
   bestInstitutions = computed(() => {
     const sorted = [...this.institutions()].sort((a, b) => b.avgScore - a.avgScore);
     return sorted.slice(0, 10);
+  });
+
+  // Box Plot Mode (worst = menor rendimiento, best = mejor rendimiento)
+  boxPlotMode = signal<'worst' | 'best'>('worst');
+
+  setBoxPlotMode(mode: 'worst' | 'best'): void {
+    this.boxPlotMode.set(mode);
+  }
+
+  boxPlotData = computed(() => {
+    return this.boxPlotMode() === 'worst' ? this.topInstitutions() : this.bestInstitutions();
+  });
+
+  // Box Plot Chart Options using AG Charts Enterprise
+  boxPlotOptions = computed<any>(() => {
+    const data = this.boxPlotData();
+    const isDark = this.isDarkMode();
+    const isWorst = this.boxPlotMode() === 'worst';
+    const mainColor = isWorst ? '#C2354a' : '#005ca2';
+    const strokeColor = isWorst ? '#991B1B' : '#004a82';
+
+    // Calculate dynamic Y-axis bounds based on actual data min and max
+    const allMins = data.map(inst => inst.minScore).filter(v => v !== undefined && !isNaN(v));
+    const allMaxs = data.map(inst => inst.maxScore).filter(v => v !== undefined && !isNaN(v));
+
+    const globalMin = allMins.length > 0 ? Math.min(...allMins) : 0;
+    const globalMax = allMaxs.length > 0 ? Math.max(...allMaxs) : 1000;
+
+    // Add padding to Y-axis range to fill maximum canvas vertical space
+    const yMin = Math.max(0, Math.floor((globalMin - 40) / 50) * 50);
+    const yMax = Math.min(1000, Math.ceil((globalMax + 40) / 50) * 50);
+
+    return {
+      autoSize: true,
+      padding: {
+        top: 15,
+        right: 25,
+        bottom: 15,
+        left: 25
+      },
+      data: data.map(inst => {
+        const min = inst.minScore;
+        const max = inst.maxScore;
+        const avg = inst.avgScore;
+        const q1 = inst.q1 ?? Math.round(min + (avg - min) * 0.5);
+        const median = inst.median ?? Math.round(avg);
+        const q3 = inst.q3 ?? Math.round(avg + (max - avg) * 0.5);
+
+        return {
+          institution: inst.institution.length > 28 ? inst.institution.substring(0, 28) + '...' : inst.institution,
+          fullTitle: inst.institution,
+          type: inst.type,
+          min,
+          q1,
+          median,
+          q3,
+          max,
+          avg,
+          studentCount: inst.studentCount
+        };
+      }),
+      series: [
+        {
+          type: 'box-plot',
+          yName: 'Puntaje',
+          xKey: 'institution',
+          minKey: 'min',
+          q1Key: 'q1',
+          medianKey: 'median',
+          q3Key: 'q3',
+          maxKey: 'max',
+          fill: mainColor,
+          fillOpacity: 0.85,
+          stroke: strokeColor,
+          strokeWidth: 2,
+          whisker: {
+            stroke: isDark ? '#E2E8F0' : '#1E293B',
+            strokeWidth: 2.5
+          },
+          tooltip: {
+            renderer: (params: any) => {
+              const item = params.datum;
+              return {
+                title: item.fullTitle || item[params.xKey],
+                content: [
+                  `Tipo: ${item.type || 'N/A'}`,
+                  `Mínimo: ${item.min} pts`,
+                  `Q1 (25%): ${item.q1} pts`,
+                  `Mediana (50%): ${item.median} pts`,
+                  `Promedio: ${item.avg} pts`,
+                  `Q3 (75%): ${item.q3} pts`,
+                  `Máximo: ${item.max} pts`,
+                  `Estudiantes: ${item.studentCount}`
+                ].join('\n')
+              };
+            }
+          }
+        }
+      ],
+      axes: [
+        {
+          type: 'category',
+          position: 'bottom',
+          title: {
+            text: 'Institución Educativa',
+            fontSize: 13,
+            fontWeight: 'bold',
+            color: isDark ? '#E5E7EB' : '#374151'
+          },
+          label: {
+            color: isDark ? '#F9FAFB' : '#111827',
+            fontSize: 12,
+            fontWeight: 'bold',
+            rotation: -25
+          }
+        },
+        {
+          type: 'number',
+          position: 'left',
+          title: {
+            text: 'Puntaje Obtenido (pts)',
+            fontSize: 13,
+            fontWeight: 'bold',
+            color: isDark ? '#E5E7EB' : '#374151'
+          },
+          label: {
+            color: isDark ? '#F9FAFB' : '#111827',
+            fontSize: 13
+          },
+          min: yMin,
+          max: yMax
+        }
+      ],
+      legend: {
+        enabled: false
+      },
+      background: {
+        visible: false
+      },
+      theme: isDark ? 'ag-default-dark' : 'ag-default'
+    };
   });
 
   // Navigation methods

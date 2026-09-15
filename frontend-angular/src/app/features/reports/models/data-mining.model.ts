@@ -46,9 +46,13 @@ export interface InstitutionAnalysisItem {
   type: string;
   avgScore: number;
   minScore: number;
+  q1?: number;
+  median?: number;
+  q3?: number;
   maxScore: number;
   studentCount: number;
   stdDev: number;
+  outliers?: number[];
   performanceLevel: 'Excelente' | 'Bueno' | 'Regular' | 'Bajo';
   recommendations: Recommendation[];
 }
