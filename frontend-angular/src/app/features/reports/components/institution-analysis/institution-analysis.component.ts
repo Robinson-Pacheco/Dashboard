@@ -183,15 +183,15 @@ export class InstitutionAnalysisComponent implements OnInit {
   formatInstitutionLabel(name: string, index: number): string {
     if (!name) return `${index + 1}. Sin Información`;
     let clean = name
-      .replace(/UNIDAD EDUCATIVA FISCOMISIONAL/gi, 'U.E.Fiscomisional')
-      .replace(/UNIDAD EDUCATIVA PARTICULAR/gi, 'U.E.P.')
-      .replace(/UNIDAD EDUCATIVA MUNICIPAL/gi, 'U.E.M.')
-      .replace(/UNIDAD EDUCATIVA FISCAL/gi, 'U.E.F.')
+      .replace(/UNIDAD EDUCATIVA FISCOMISIONAL/gi, 'U.E. Fiscomisional')
+      .replace(/UNIDAD EDUCATIVA PARTICULAR/gi, 'U.E. Particular')
+      .replace(/UNIDAD EDUCATIVA MUNICIPAL/gi, 'U.E. Municipal')
+      .replace(/UNIDAD EDUCATIVA FISCAL/gi, 'U.E. Fiscal')
       .replace(/COLEGIO DE BACHILLERATO/gi, 'C.B.')
       .replace(/UNIDAD EDUCATIVA/gi, 'U.E.');
 
-    if (clean.length > 22) {
-      clean = clean.substring(0, 22) + '...';
+    if (clean.length > 28) {
+      clean = clean.substring(0, 28) + '...';
     }
     return `${index + 1}. ${clean}`;
   }
@@ -211,17 +211,17 @@ export class InstitutionAnalysisComponent implements OnInit {
     const globalMin = allMins.length > 0 ? Math.min(...allMins) : 0;
     const globalMax = allMaxs.length > 0 ? Math.max(...allMaxs) : 1000;
 
-    // Add padding to Y-axis range to fill maximum canvas vertical space
+    // Add padding to score axis range
     const yMin = Math.max(0, Math.floor((globalMin - 40) / 50) * 50);
     const yMax = Math.min(1000, Math.ceil((globalMax + 40) / 50) * 50);
 
     return {
       autoSize: true,
       padding: {
-        top: 15,
+        top: 10,
         right: 20,
-        bottom: 15,
-        left: 20
+        bottom: 10,
+        left: 10
       },
       data: data.map((inst, idx) => {
         const min = inst.minScore;
@@ -248,7 +248,7 @@ export class InstitutionAnalysisComponent implements OnInit {
       series: [
         {
           type: 'box-plot',
-          yName: 'Puntaje',
+          direction: 'horizontal',
           xKey: 'institution',
           minKey: 'min',
           q1Key: 'q1',
@@ -286,9 +286,9 @@ export class InstitutionAnalysisComponent implements OnInit {
       axes: [
         {
           type: 'category',
-          position: 'bottom',
-          paddingInner: 0.45,
-          paddingOuter: 0.2,
+          position: 'left',
+          paddingInner: 0.35,
+          paddingOuter: 0.15,
           title: {
             text: 'Institución Educativa (Top 10)',
             fontSize: 13,
@@ -297,14 +297,14 @@ export class InstitutionAnalysisComponent implements OnInit {
           },
           label: {
             color: isDark ? '#F9FAFB' : '#111827',
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: 'bold',
-            rotation: -25
+            rotation: 0
           }
         },
         {
           type: 'number',
-          position: 'left',
+          position: 'bottom',
           title: {
             text: 'Puntaje Obtenido (pts)',
             fontSize: 13,
