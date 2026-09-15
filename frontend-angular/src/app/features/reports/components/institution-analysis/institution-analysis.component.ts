@@ -180,6 +180,22 @@ export class InstitutionAnalysisComponent implements OnInit {
     return this.boxPlotMode() === 'worst' ? this.topInstitutions() : this.bestInstitutions();
   });
 
+  formatInstitutionLabel(name: string, index: number): string {
+    if (!name) return `${index + 1}. Sin Información`;
+    let clean = name
+      .replace(/UNIDAD EDUCATIVA FISCOMISIONAL/gi, 'U.E.Fiscomisional')
+      .replace(/UNIDAD EDUCATIVA PARTICULAR/gi, 'U.E.P.')
+      .replace(/UNIDAD EDUCATIVA MUNICIPAL/gi, 'U.E.M.')
+      .replace(/UNIDAD EDUCATIVA FISCAL/gi, 'U.E.F.')
+      .replace(/COLEGIO DE BACHILLERATO/gi, 'C.B.')
+      .replace(/UNIDAD EDUCATIVA/gi, 'U.E.');
+
+    if (clean.length > 22) {
+      clean = clean.substring(0, 22) + '...';
+    }
+    return `${index + 1}. ${clean}`;
+  }
+
   // Box Plot Chart Options using AG Charts Enterprise
   boxPlotOptions = computed<any>(() => {
     const data = this.boxPlotData();
@@ -202,21 +218,22 @@ export class InstitutionAnalysisComponent implements OnInit {
     return {
       autoSize: true,
       padding: {
-        top: 10,
+        top: 15,
         right: 20,
-        bottom: 10,
+        bottom: 15,
         left: 20
       },
-      data: data.map(inst => {
+      data: data.map((inst, idx) => {
         const min = inst.minScore;
         const max = inst.maxScore;
         const avg = inst.avgScore;
         const q1 = inst.q1 ?? Math.round(min + (avg - min) * 0.5);
         const median = inst.median ?? Math.round(avg);
         const q3 = inst.q3 ?? Math.round(avg + (max - avg) * 0.5);
+        const uniqueKey = this.formatInstitutionLabel(inst.institution, idx);
 
         return {
-          institution: inst.institution.length > 28 ? inst.institution.substring(0, 28) + '...' : inst.institution,
+          institution: uniqueKey,
           fullTitle: inst.institution,
           type: inst.type,
           min,
@@ -270,15 +287,17 @@ export class InstitutionAnalysisComponent implements OnInit {
         {
           type: 'category',
           position: 'bottom',
+          paddingInner: 0.45,
+          paddingOuter: 0.2,
           title: {
-            text: 'Institución Educativa',
+            text: 'Institución Educativa (Top 10)',
             fontSize: 13,
             fontWeight: 'bold',
             color: isDark ? '#E5E7EB' : '#374151'
           },
           label: {
             color: isDark ? '#F9FAFB' : '#111827',
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 'bold',
             rotation: -25
           }
@@ -294,7 +313,7 @@ export class InstitutionAnalysisComponent implements OnInit {
           },
           label: {
             color: isDark ? '#F9FAFB' : '#111827',
-            fontSize: 13
+            fontSize: 12
           },
           min: yMin,
           max: yMax
